@@ -1,8 +1,15 @@
 {
   "name": "sly-svelte-router",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "description": "A spa router for svelte based on the History API",
-  "keywords": ["svelte", "router", "spa", "history api", "slyotis", "sly"],
+  "keywords": [
+    "svelte",
+    "router",
+    "spa",
+    "history api",
+    "slyotis",
+    "sly"
+  ],
   "repository": {
     "type": "git",
     "url": "https://github.com/SlyOtis/svelte-router"
@@ -15,7 +22,8 @@
   "license": "MIT",
   "main": "dist/index.js",
   "module": "dist/index.mjs",
-  "svelte":"src/index.ts",
+  "svelte": "src/index.ts",
+  "types": "",
   "scripts": {
     "start": "snowpack dev",
     "dev": "snowpack dev",
