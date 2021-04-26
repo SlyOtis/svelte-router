@@ -1,8 +1,8 @@
 {
   "include": ["src", "types"],
   "compilerOptions": {
-    "module": "esnext",
-    "target": "esnext",
+    "module": "CommonJS",
+    "target": "ESNext",
     "moduleResolution": "node",
     "jsx": "preserve",
     "baseUrl": "./",
@@ -13,8 +13,9 @@
       //     "*": [".snowpack/types/*"]
       // More info: https://www.snowpack.dev/guides/streaming-imports
     },
-    /* noEmit - Snowpack builds (emits) files, not tsc. */
-    "noEmit": true,
+    /* noEmit - Snowpack builds (emits) files, not tsc. But allow typings to be emited */
+    "noEmit": false,
+    "emitDeclarationOnly": true,
     /* Additional Options */
     "strict": true,
     "skipLibCheck": true,
@@ -23,6 +24,10 @@
     "useDefineForClassFields": true,
     "allowSyntheticDefaultImports": true,
     "importsNotUsedAsValues": "error",
-    "declaration": true
-  }
+    "declaration": true,
+    "noLib": false,
+    "typeRoots": [
+      "./types"
+    ]
+  },
 }
