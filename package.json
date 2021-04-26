@@ -1,6 +1,6 @@
 {
   "name": "sly-svelte-router",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "A spa router for svelte based on the History API",
   "keywords": ["svelte", "router", "spa", "history api", "slyotis", "sly"],
   "repository": {
