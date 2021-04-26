@@ -1,0 +1,10 @@
+{
+  "name": "@slyotis/svelte-router",
+  "version": "1.0.0",
+  "description": "A spa router for svelte based on the History API",
+  "main": "index.js",
+  "repository": "https://github.com/SlyOtis/svelte-router",
+  "author": "Martin Ottersland",
+  "license": "MIT",
+  "private": true
+}
