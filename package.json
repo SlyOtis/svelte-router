@@ -1,6 +1,6 @@
 {
   "name": "sly-svelte-router",
-  "version": "1.0.18",
+  "version": "1.0.19",
   "description": "A spa router for svelte based on the History API",
   "keywords": [
     "svelte",
@@ -20,9 +20,8 @@
   },
   "author": "Martin Ottersland",
   "license": "MIT",
-  "main": "index.js",
-  "module": "index.mjs",
-  "svelte": "src/index.ts",
+  "main": "dist/index.js",
+  "module": "dist/index.mjs",
   "scripts": {
     "build": "rollup -c",
     "dev": "rollup -c -w",
