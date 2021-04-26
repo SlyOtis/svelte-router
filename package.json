@@ -1,6 +1,6 @@
 {
   "name": "sly-svelte-router",
-  "version": "1.0.5",
+  "version": "1.0.6",
   "description": "A spa router for svelte based on the History API",
   "keywords": [
     "svelte",
@@ -30,8 +30,7 @@
     "run:declarations": "tsc --declaration --emitDeclarationOnly --declarationDir build/types"
   },
   "files": [
-    "src",
-    "dist"
+    "build"
   ],
   "dependencies": {
     "svelte": "^3.24.0"
