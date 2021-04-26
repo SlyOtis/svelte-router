@@ -1,6 +1,6 @@
 {
   "name": "sly-svelte-router",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "A spa router for svelte based on the History API",
   "keywords": [
     "svelte",
@@ -20,8 +20,8 @@
   },
   "author": "Martin Ottersland",
   "license": "MIT",
-  "main": "./build/dist/index.js",
-  "types": "./build/dist/types/index.d.ts",
+  "main": "./build/dist/routing.js",
+  "types": "./build/dist/types/routing.d.ts",
   "scripts": {
     "start": "snowpack dev",
     "dev": "snowpack dev",
