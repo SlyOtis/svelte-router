@@ -20,16 +20,14 @@
   },
   "author": "Martin Ottersland",
   "license": "MIT",
-  "main": "dist/index.js",
-  "module": "dist/index.mjs",
+  "main": "index.js",
+  "module": "index.mjs",
+  "svelte": "Router.svelte",
   "scripts": {
     "build": "rollup -c",
     "dev": "rollup -c -w",
-    "prepublishOnly": "tsc && rollup -c"
+    "prepublishOnly": "tsc && rollup -c && cd dist"
   },
-  "files": [
-    "dist"
-  ],
   "dependencies": {
     "svelte": "^3.37.0"
   },
@@ -38,6 +36,7 @@
     "@rollup/plugin-node-resolve": "^11.2.1",
     "@tsconfig/svelte": "^1.0.10",
     "rollup": "^2.45.2",
+    "rollup-plugin-copy": "^3.4.0",
     "rollup-plugin-peer-deps-external": "^2.2.4",
     "rollup-plugin-svelte": "^7.1.0",
     "rollup-plugin-typescript2": "^0.30.0",

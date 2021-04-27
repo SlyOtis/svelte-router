@@ -268,8 +268,4 @@ export function createRouter(conf: RouterConf): Route {
   return route
 }
 
-export {
-  Router,
-}
-
-export default link
+export default Router
