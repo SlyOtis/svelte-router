@@ -1,6 +1,6 @@
 {
   "name": "sly-svelte-router",
-  "version": "1.0.19",
+  "version": "1.0.20",
   "description": "A spa router for svelte based on the History API",
   "keywords": [
     "svelte",
@@ -20,30 +20,35 @@
   },
   "author": "Martin Ottersland",
   "license": "MIT",
-  "main": "dist/index.js",
-  "module": "dist/index.mjs",
-  "scripts": {
-    "build": "rollup -c",
-    "dev": "rollup -c -w",
-    "prepublishOnly": "tsc && rollup -c"
-  },
   "files": [
     "dist"
   ],
-  "dependencies": {
-    "svelte": "^3.37.0"
+  "main": "./dist/sly-svelte-router.umd.js",
+  "module": "./dist/sly-svelte-router.es.js",
+  "exports": {
+    ".": {
+      "import": "./dist/sly-svelte-router.es.js",
+      "require": "./dist/sly-svelte-router.umd.js"
+    }
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check": "svelte-check --tsconfig ../tsconfig.json && tsc -p tsconfig.node.json",
+    "bp": "pnpm build && pnpm publish"
   },
   "devDependencies": {
-    "@rollup/plugin-commonjs": "^18.0.0",
-    "@rollup/plugin-node-resolve": "^11.2.1",
-    "@tsconfig/svelte": "^1.0.10",
-    "rollup": "^2.45.2",
-    "rollup-plugin-peer-deps-external": "^2.2.4",
-    "rollup-plugin-svelte": "^7.1.0",
-    "rollup-plugin-typescript2": "^0.30.0",
-    "svelte-check": "^1.5.1",
-    "svelte-preprocess": "^4.7.2",
-    "tslib": "^2.2.0",
-    "typescript": "^4.2.4"
+    "@sveltejs/vite-plugin-svelte": "^3.1.1",
+    "@tsconfig/svelte": "^5.0.4",
+    "@types/node": "^22.5.4",
+    "svelte": "^4.2.18",
+    "svelte-check": "^3.8.5",
+    "tslib": "^2.6.3",
+    "typescript": "^5.5.3",
+    "vite": "^5.4.1"
+  },
+  "dependencies": {
+    "path-to-regexp": "^8.0.0"
   }
 }
