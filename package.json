@@ -40,7 +40,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "check": "svelte-check --tsconfig ../tsconfig.json && tsc -p tsconfig.node.json",
-    "bp": "pnpm build && pnpm publish"
+    "bp": "pnpm build && pnpm publish --publish-branch=sly-svelte-spa-router"
   },
   "devDependencies": {
     "@sveltejs/vite-plugin-svelte": "^3.1.1",
