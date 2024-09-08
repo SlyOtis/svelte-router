@@ -2,14 +2,14 @@
   "name": "sly-svelte-location-router",
   "version": "2.0.1",
   "type": "module",
-  "description": "A spa router for svelte based on the History API",
+  "description": "A simple svelte router based on location API",
   "keywords": [
     "svelte",
     "router",
-    "spa",
-    "history api",
+    "location api",
     "slyotis",
-    "sly"
+    "sly",
+    "location"
   ],
   "repository": {
     "type": "git",
@@ -24,12 +24,14 @@
   "files": [
     "dist"
   ],
-  "main": "./dist/sly-svelte-router.umd.js",
-  "module": "./dist/sly-svelte-router.es.js",
+  "main": "./dist/sly-svelte-lodation-router.umd.js",
+  "module": "./dist/sly-svelte-lodation-router.es.js",
+  "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "import": "./dist/sly-svelte-router.es.js",
-      "require": "./dist/sly-svelte-router.umd.js"
+      "import": "./dist/sly-svelte-lodation-router.es.js",
+      "require": "./dist/sly-svelte-lodation-router.umd.js",
+      "types": "./dist/index.d.ts"
     }
   },
   "scripts": {
