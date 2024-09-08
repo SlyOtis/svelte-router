@@ -13,7 +13,7 @@ export default defineConfig({
   ],
   build: {
     lib: {
-      entry: path.resolve(__dirname, "src/module.ts"),
+      entry: path.resolve(__dirname, "src/index.ts"),
       name: "sly-svelte-location-router",
       fileName: (format) => `sly-svelte-location-router.${format}.js`,
     },
