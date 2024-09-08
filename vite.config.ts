@@ -8,7 +8,7 @@ export default defineConfig({
   build: {
     lib: {
       entry: path.resolve(__dirname, "src/module.ts"),
-      name: "SlySvelteRouter",
+      name: "sly-svelte-router",
       fileName: (format) => `sly-svelte-router.${format}.js`,
     },
     rollupOptions: {
