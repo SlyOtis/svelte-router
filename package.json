@@ -1,5 +1,5 @@
 {
-  "name": "sly-svelte-router",
+  "name": "sly-svelte-location-router",
   "version": "2.0.1",
   "type": "module",
   "description": "A spa router for svelte based on the History API",
