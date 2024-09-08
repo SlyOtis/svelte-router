@@ -1,5 +1,5 @@
 {
-  "name": "svelte-router",
+  "name": "sly-svelte-router",
   "version": "2.0.0",
   "type": "module",
   "description": "A spa router for svelte based on the History API",
@@ -24,12 +24,12 @@
   "files": [
     "dist"
   ],
-  "main": "./dist/svelte-router.umd.js",
-  "module": "./dist/svelte-router.es.js",
+  "main": "./dist/sly-svelte-router.umd.js",
+  "module": "./dist/sly-svelte-router.es.js",
   "exports": {
     ".": {
-      "import": "./dist/svelte-router.es.js",
-      "require": "./dist/svelte-router.umd.js"
+      "import": "./dist/sly-svelte-router.es.js",
+      "require": "./dist/sly-svelte-router.umd.js"
     }
   },
   "scripts": {
