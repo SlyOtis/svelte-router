@@ -1,6 +1,6 @@
 {
   "name": "sly-svelte-location-router",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "type": "module",
   "description": "A simple svelte router based on location API",
   "keywords": [
@@ -49,7 +49,8 @@
     "svelte-check": "^3.8.5",
     "tslib": "^2.6.3",
     "typescript": "^5.5.3",
-    "vite": "^5.4.1"
+    "vite": "^5.4.1",
+    "vite-plugin-dts": "^4.2.1"
   },
   "dependencies": {
     "path-to-regexp": "^8.0.0"
