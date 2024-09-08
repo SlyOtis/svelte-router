@@ -10,3 +10,5 @@ export {
     getRoutes,
     navigate
 }
+
+export default Router
