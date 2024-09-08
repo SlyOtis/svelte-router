@@ -1,4 +1,4 @@
-# sly-svelte-router
+# sly-svelte-spa-router
 
 A SPA router for Svelte based on the History API.
 
