@@ -11,6 +11,9 @@
     "slyotis",
     "sly"
   ],
+  "publishConfig": {
+    "branch": "sly-svelte-spa-router"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/SlyOtis/svelte-router"
