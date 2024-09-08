@@ -7,7 +7,7 @@ export default defineConfig({
   plugins: [svelte()],
   build: {
     lib: {
-      entry: path.resolve(__dirname, "src/module.ts"),
+      entry: path.resolve(__dirname, "src/index.ts"),
       name: "sly-svelte-router",
       fileName: (format) => `sly-svelte-router.${format}.js`,
     },

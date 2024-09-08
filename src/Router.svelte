@@ -1,5 +1,5 @@
 <script lang="ts">
-  import {createRouter} from './rounting'
+  import {createRouter} from './index'
   
   export let routes: any
   export let restrictions: any
