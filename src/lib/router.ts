@@ -1,4 +1,4 @@
-import {match} from 'path-to-regexp';
+import {match, } from 'path-to-regexp';
 import type {RouteParams, Routes} from "./types";
 import {routeStore} from "./store";
 
@@ -52,12 +52,26 @@ function updateRouteStore(url: string, state: any = null) {
 function handleNavigation(url: string, state: any = null) {
     const parsedUrl = new URL(url, window.location.origin);
     history.pushState(state, '', parsedUrl.toString());
+    console.log(parsedUrl.toString());
     updateRouteStore(parsedUrl.toString(), state);
+}
+
+function testRoutes(routes: Routes) {
+    try {
+
+        Object.keys(routes).forEach(path => {
+
+        })
+
+    } catch (e) {
+        throw new Error("Invalid routes, see https://github.com/pillarjs/path-to-regexp for pattern");
+    }
 }
 
 export function initRouter(routes: Routes) {
     Config.routes = routes;
 
+    testRoutes(routes)
     if (Config.routes === null) {
         throw new Error('Routes not found, run initRoutes');
     }
@@ -65,6 +79,7 @@ export function initRouter(routes: Routes) {
     updateRouteStore(window.location.href, history.state);
 
     window.addEventListener('popstate', (event) => {
+        console.log('change')
         updateRouteStore(window.location.href, event.state);
     });
 
@@ -72,7 +87,8 @@ export function initRouter(routes: Routes) {
         const target = e.target as HTMLAnchorElement;
         if (target.tagName === 'A' && target.href.startsWith(window.location.origin)) {
             e.preventDefault();
-            handleNavigation(target.href, null);
+            handleNavigation(target.href, Config.state);
+            console.log('change')
         }
     });
 
@@ -84,26 +100,21 @@ export function initRouter(routes: Routes) {
 
     const originalReplaceState = history.replaceState;
     history.replaceState = function () {
+        console.log('change')
         originalReplaceState.apply(this, arguments as any);
         updateRouteStore(arguments[2] as string, arguments[0]);
     };
 
     const originalAssign = window.location.assign;
-    window.location.assign = function (url: string) {
-        handleNavigation(url, null);
-    };
+    Object.defineProperty(window.location, 'assign', function (url: string) {
+        console.log('change')
+        handleNavigation(url, Config.state);
+    });
 
     const originalReplace = window.location.replace;
-    window.location.replace = function (url: string) {
-        handleNavigation(url, null); //TODO:: Fix state reset
-    };
-
-    // TODO:: Do the same for pathname?
-
-    Object.defineProperty(window.location, 'href', {
-        set: function (href: string) {
-            handleNavigation(href, null);
-        }
+    Object.defineProperty(window.location, 'replace', function (url: string) {
+        console.log('change')
+        handleNavigation(url, Config.state); //TODO:: Fix state reset
     });
 }
 

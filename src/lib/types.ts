@@ -14,4 +14,6 @@ export type RouteInfo<T = any> = {
     component: RouteComponent | null;
 }
 
+export type RouteProps<T = any> = Omit<RouteInfo<T>, 'component'>
+
 export type Routes = Record<string, RouteComponent>;

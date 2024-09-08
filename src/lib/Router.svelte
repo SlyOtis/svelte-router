@@ -1,29 +1,33 @@
 <script lang="ts">
     import {onMount} from 'svelte';
-    import {currentComponent} from './store';
+    import {routeStore} from './store';
     import {initRouter} from './router';
     import type {Routes} from './types';
 
     export let routes: Routes
     export let fallback: (() => Promise<any>) | undefined
 
-    let component: any = null;
+    let routeComp: any = null;
     let loading = true;
+    let routeProps: any = null
 
     onMount(() => {
         initRouter(routes);
     });
 
-    $: if ($currentComponent) {
+    $: if ($routeStore && $routeStore.component) {
         loading = true;
-        $currentComponent().then(module => {
-            component = module.default;
+        const {component, ...props} = $routeStore;
+        component().then(module => {
+            routeComp = module.default;
+            routeProps = props;
             loading = false;
         });
     } else if (fallback !== undefined) {
         loading = true;
         fallback()?.then(module => {
-            component = module.default;
+            routeComp = module.default;
+            routeProps = null
             loading = false;
         });
     }
@@ -32,5 +36,5 @@
 {#if loading}
     <slot></slot>
 {:else}
-    <svelte:component this={component}/>
+    <svelte:component this={routeComp} props={routeProps} />
 {/if}

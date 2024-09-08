@@ -4,7 +4,8 @@
 
   const routes: Routes = {
     '/': () => import('./routes/Home.svelte'),
-    '/about/:id': () => import('./routes/About.svelte'),
+    '/about': () => import('./routes/About.svelte'),
+    '/user/:id': () => import('./routes/User.svelte'),
     '*': () => import('./routes/404.svelte'),
   };
 
