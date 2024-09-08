@@ -38,4 +38,4 @@ A SPA router for Svelte based on the History API.
 
 ## DISCONTINUED
 
-This project is no longer maintained. For an updated and improved version, please check out [sly-server-router](https://www.npmjs.com/package/sly-svelte-location-router).
+This project is no longer maintained. For an updated and improved version, please check out [sly-svelte-location-router](https://www.npmjs.com/package/sly-svelte-location-router).
