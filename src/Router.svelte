@@ -1,4 +1,4 @@
-<script lang="typescript">
+<script lang="ts">
   import {createRouter} from './rounting'
   
   export let routes: any
