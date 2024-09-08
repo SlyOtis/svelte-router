@@ -1,6 +1,6 @@
-# sly-svelte-router
+# sly-svelte-location-router
 
-A lightweight and flexible SPA router for Svelte applications, leveraging the power of the History API and path-to-regexp for advanced routing capabilities.
+A lightweight and flexible router for Svelte applications, leveraging the power of the Location API and path-to-regexp for advanced routing capabilities.
 
 ## Features
 
@@ -16,7 +16,7 @@ A lightweight and flexible SPA router for Svelte applications, leveraging the po
 ## Installation
 
 ```bash
-npm install sly-svelte-router
+pnpm install sly-svelte-router
 ```
 
 ## Usage
