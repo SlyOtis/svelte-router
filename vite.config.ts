@@ -24,7 +24,6 @@ export default defineConfig({
         globals: {
           svelte: "Svelte",
         },
-        preserveModules: true,
         entryFileNames: (chunkInfo) => {
           return chunkInfo.name === "index" ? "index.js" : "[name].js";
         },
