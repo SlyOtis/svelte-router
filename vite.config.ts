@@ -15,7 +15,7 @@ export default defineConfig({
     lib: {
       entry: path.resolve(__dirname, "src/lib/index.ts"),
       name: "sly-svelte-location-router",
-      formats: ["es", "umd"],
+      formats: ['es', 'umd'],
       fileName: (format) => `sly-svelte-location-router.${format}.js`,
     },
     rollupOptions: {
@@ -24,9 +24,8 @@ export default defineConfig({
         globals: {
           svelte: "Svelte",
         },
-        entryFileNames: (chunkInfo) => {
-          return chunkInfo.name === "index" ? "index.js" : "[name].js";
-        },
+        inlineDynamicImports: false,
+        preserveModules: false,
       },
     },
   },
