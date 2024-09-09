@@ -32,5 +32,3 @@ export {
     currentRoute /** Current route path */,
     routeName /** Current route name */,
 };
-
-export default Router;
