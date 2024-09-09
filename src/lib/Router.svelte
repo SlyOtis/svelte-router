@@ -1,18 +1,21 @@
 <script lang="ts">
     import {onMount} from 'svelte';
     import {routeStore} from './store';
-    import {initRouter} from './router';
-    import type {Routes} from './types';
+    import {execFallback, initRouter, navigate} from './router';
+    import type {RouteDefinition, Routes} from './types';
 
     export let routes: Routes
-    export let fallback: (() => Promise<any>) | undefined
+    export let fallback: RouteDefinition
 
-    let routeComp: any = null;
-    let loading = true;
+    let routeComp: any = null
+    let loading = true
     let routeProps: any = null
+    let isInitialized: any = null
+
 
     onMount(() => {
         initRouter(routes);
+        isInitialized = true
     });
 
     $: if ($routeStore && $routeStore.component) {
@@ -23,13 +26,13 @@
             routeProps = props;
             loading = false;
         });
-    } else if (fallback !== undefined) {
+    } else if (fallback !== undefined && isInitialized) {
         loading = true;
-        fallback()?.then(module => {
+        execFallback(fallback)().then(module => {
             routeComp = module.default;
-            routeProps = null
+            routeProps = null;
             loading = false;
-        });
+        })
     }
 </script>
 

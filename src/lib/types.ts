@@ -1,4 +1,4 @@
-import type {Router} from "./index";
+import type { Router } from "./index";
 
 /** Represents route parameters as key-value pairs */
 export type RouteParams = {
@@ -49,7 +49,43 @@ export type RouteProps<T = any> = Omit<RouteInfo<T>, "component">;
 export type RouteData = { name: string; component: RouteComponent };
 
 /**
+ * Represents the possible definitions for a route
+ *
+ * Can be one of:
+ * - RouteData: An object with 'name' and 'component' properties
+ * - RouteComponent: A function returning a Promise that resolves to a component
+ * - string: A pathname string for redirection
+ */
+export type RouteDefinition = RouteData | RouteComponent | string;
+
+/**
  * Defines the structure of routes configuration
  * Keys are route paths, values are either RouteData, RouteComponent, or a redirect pathname
  */
-export type Routes = Record<string, RouteData | RouteComponent | string>
+export type Routes = Record<string, RouteDefinition>;
+
+/**
+ * Represents a matched route in the router
+ */
+export type MatchedRoute = {
+  /** Route parameters extracted from the URL */
+  params: RouteParams;
+  /** The name of the matched route */
+  name: string;
+  /** The lazy-loaded component associated with the route */
+  component: () => Promise<any>;
+};
+
+/**
+ * Represents a matched route in the router
+ */
+export type MatchedLocationRoute = {
+  /** Route parameters extracted from the URL */
+  params: RouteParams;
+  /** The name of the matched route */
+  name: string;
+  /** The lazy-loaded component associated with the route */
+  component: () => Promise<any>;
+  /** Che current URL of the matched route */
+  url: URL
+};

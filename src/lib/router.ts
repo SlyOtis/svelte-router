@@ -1,5 +1,5 @@
 import {match} from "path-to-regexp";
-import type {RouteParams, Routes} from "./types";
+import type {MatchedLocationRoute, MatchedRoute, RouteDefinition, RouteParams, Routes} from "./types";
 import {routeStore} from "./store";
 
 class Config {
@@ -15,11 +15,7 @@ function parseQueryParams(search: string): Map<string, string> {
     return params;
 }
 
-function findMatchingRoute(pathname: string): {
-    params: RouteParams;
-    name: string;
-    component: () => Promise<any>;
-} | null {
+function findMatchingRoute(pathname: string): MatchedRoute | null {
     let routes = getRoutes();
     for (const routePath of Object.keys(routes)) {
         const matchFn = match(routePath, {decode: decodeURIComponent});
@@ -28,7 +24,7 @@ function findMatchingRoute(pathname: string): {
             const routeData = routes[routePath]
 
             if (typeof routeData === 'string') {
-                window.location.pathname = routeData;
+                setLocation(routeData)
                 return findMatchingRoute(routeData)
             } else if (typeof routeData === 'function') {
                 return {
@@ -50,9 +46,35 @@ function findMatchingRoute(pathname: string): {
     return null;
 }
 
-function updateRouteStore(url: string, state: any = null) {
-    const parsedUrl = new URL(url, window.location.origin);
-    const matchedRoute = findMatchingRoute(parsedUrl.pathname);
+function getLocationRoute(url: string): MatchedLocationRoute | null {
+    const parsedUrl = new URL(url, window.location.origin)
+    const matchedRoute = findMatchingRoute(parsedUrl.pathname)
+    return matchedRoute ? {
+        ...matchedRoute,
+        url: parsedUrl,
+    } : null
+}
+
+function setLocation(url: string) {
+    const parsedUrl = new URL(url, window.location.origin)
+    if (window.location.pathname !== parsedUrl.pathname) {
+        window.location.pathname = parsedUrl.pathname;
+    }
+    if (window.location.hash !== parsedUrl.hash) {
+        window.location.hash = parsedUrl.hash;
+    }
+    if (window.location.hostname !== parsedUrl.hostname) {
+        window.location.hostname = parsedUrl.hostname;
+    }
+}
+
+function updateRouteStore(url: string, state: any = null): MatchedRoute | null {
+    const matchedRoute = getLocationRoute(url)
+    if (!matchedRoute) {
+        throw new Error("Route not found for url: " + url);
+    }
+
+    const {url: {pathname, search, hash}, params, component, name} = matchedRoute
 
     Config.state = state;
 
@@ -60,21 +82,22 @@ function updateRouteStore(url: string, state: any = null) {
 
     routeStore.update((route) => ({
         ...route,
-        pathname: parsedUrl.pathname,
-        search: parsedUrl.search,
-        hash: parsedUrl.hash,
+        pathname,
+        search,
+        hash,
         state: state || {},
-        queryParams: parseQueryParams(parsedUrl.search),
-        params: matchedRoute ? matchedRoute.params : {},
-        component: matchedRoute ? matchedRoute.component : null,
-        name: matchedRoute ? matchedRoute.name : "",
+        queryParams: parseQueryParams(search),
+        params,
+        component,
+        name,
     }));
+
+    return matchedRoute
 }
 
 function handleNavigation(url: string, state: any = null) {
     const parsedUrl = new URL(url, window.location.origin);
     history.pushState(state, "", parsedUrl.toString());
-    console.log(parsedUrl.toString());
     updateRouteStore(parsedUrl.toString(), state);
 }
 
@@ -135,6 +158,27 @@ export function initRouter(routes: Routes) {
     Object.defineProperty(window.location, "replace", function (url: string) {
         handleNavigation(url, Config.state); //TODO:: Fix state reset
     });
+
+    return true
+}
+
+export function execFallback(fallback: RouteDefinition): () => Promise<any> {
+    if (Config.routes === null) {
+        throw new Error("Routes not found, run initRoutes");
+    }
+
+    if (typeof fallback === 'function') {
+        return fallback
+    } else if (typeof fallback === 'string') { //TODO:: What to do with state here?
+        const matchedRoute = getLocationRoute(fallback)
+        if (!matchedRoute) {
+            throw new Error("Routes not found or invalid fallback " + fallback + ", run initRoutes");
+        }
+        setLocation(fallback)
+        return matchedRoute.component
+    } else {
+        return fallback.component
+    }
 }
 
 export function navigate(path: string, state: any = null) {

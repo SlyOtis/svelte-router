@@ -6,12 +6,11 @@
     '/': () => import('./routes/Home.svelte'),
     '/about': () => import('./routes/About.svelte'),
     '/user/:id': "/about",
-    '*': () => import('./routes/404.svelte'),
+    '/404': () => import('./routes/404.svelte'),
   };
 
-  const fallback = () => import('./routes/404.svelte');
 </script>
 
-<Router {routes} {fallback}>
+<Router {routes} fallback="/about">
   <div>Custom loading component...</div>
 </Router>
