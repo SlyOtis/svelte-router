@@ -1,6 +1,6 @@
 {
   "name": "sly-svelte-location-router",
-  "version": "2.0.11",
+  "version": "2.1.0",
   "type": "module",
   "description": "A simple svelte router based on location API",
   "keywords": [

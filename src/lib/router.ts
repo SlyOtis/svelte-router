@@ -27,19 +27,21 @@ function findMatchingRoute(pathname: string): {
         if (result) {
             const routeData = routes[routePath]
 
-
-            if ("name" in routeData && "component" in routeData) {
-                return {
-                    params: result.params as RouteParams,
-                    name: routeData.name,
-                    component: routeData.component,
-                }
+            if (typeof routeData === 'string') {
+                window.location.pathname = routeData;
+                return findMatchingRoute(routeData)
             } else if (typeof routeData === 'function') {
                 return {
                     params: result.params as RouteParams,
                     name: routePath,
                     component: routeData,
                 };
+            } else if ("name" in routeData && "component" in routeData) {
+                return {
+                    params: result.params as RouteParams,
+                    name: routeData.name,
+                    component: routeData.component,
+                }
             }
 
             throw new Error("Invalid route data")

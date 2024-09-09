@@ -1,3 +1,5 @@
+import type {Router} from "./index";
+
 /** Represents route parameters as key-value pairs */
 export type RouteParams = {
   [key: string]: string;
@@ -8,6 +10,7 @@ export type RouteParams = {
  * @returns A promise resolving to the component
  */
 export type RouteComponent = () => Promise<any>;
+export type SvelteRouterComponent = typeof Router;
 
 /**
  * Contains all information about the current route
@@ -47,6 +50,6 @@ export type RouteData = { name: string; component: RouteComponent };
 
 /**
  * Defines the structure of routes configuration
- * Keys are route paths, values are either RouteData or RouteComponent
+ * Keys are route paths, values are either RouteData, RouteComponent, or a redirect pathname
  */
-export type Routes = Record<string, RouteData | RouteComponent>
+export type Routes = Record<string, RouteData | RouteComponent | string>
