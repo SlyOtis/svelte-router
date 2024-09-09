@@ -1,14 +1,34 @@
-import {initRouter, getRoutes, navigate} from "./router";
+/** Main Router component */
 import Router from "./Router.svelte";
 
-export {currentComponent, queryParams, routeParams, routeHash, routeState, currentRoute} from "./store";
-export type * from "./types"
+/** Core router functions */
+import { initRouter, getRoutes, navigate } from "./router";
 
+/** Reactive stores for route information */
+import {
+  currentComponent,
+  queryParams,
+  routeParams,
+  routeHash,
+  routeState,
+  currentRoute,
+} from "./store";
+
+/** Type definitions */
+export type * from "./types";
+
+/** Exports */
 export {
-    Router,
-    initRouter,
-    getRoutes,
-    navigate
-}
+  Router /** Main Router component */,
+  initRouter /** Initialize the router */,
+  getRoutes /** Get configured routes */,
+  navigate /** Programmatic navigation */,
+  currentComponent /** Current route component */,
+  queryParams /** Query parameters */,
+  routeParams /** Route parameters */,
+  routeHash /** URL hash */,
+  routeState /** Route state */,
+  currentRoute /** Current route path */,
+};
 
-export default Router
+export default Router;
