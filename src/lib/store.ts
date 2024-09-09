@@ -2,6 +2,7 @@ import {derived, type Readable, writable} from "svelte/store";
 import type {RouteComponent, RouteInfo, RouteParams} from "./types";
 
 export const routeStore = writable<RouteInfo>({
+    name: "",
     pathname: window.location.pathname,
     search: window.location.search,
     hash: window.location.hash,
