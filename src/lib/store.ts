@@ -19,3 +19,4 @@ export const routeState: Readable<any> = derived(routeStore, $route => $route.st
 export const routeHash: Readable<string> = derived(routeStore, $route => $route.hash);
 export const routeParams: Readable<RouteParams> = derived(routeStore, $route => $route.params);
 export const currentComponent: Readable<RouteComponent | null> = derived(routeStore, $route => $route.component);
+export const routeName: Readable<string | null> = derived(routeStore, $route => $route.name);
