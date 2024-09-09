@@ -30,7 +30,10 @@ pnpm install sly-svelte-router
     '/': () => import('./routes/Home.svelte'),
     '/about': () => import('./routes/About.svelte'),
     '/user/:id': () => import('./routes/User.svelte'),
-    '/posts/:category/:postId': () => import('./routes/Post.svelte'),
+    '/posts/:category/:postId': () => {
+      name: "posts",
+      component: () => import('./routes/Post.svelte')
+    },
     '*': () => import('./routes/404.svelte'),
   };
 
