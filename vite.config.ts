@@ -6,7 +6,11 @@ import dts from "vite-plugin-dts";
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
-    svelte(),
+    svelte({
+      compilerOptions: {
+        customElement: false,
+      },
+    }),
     dts({
       insertTypesEntry: true,
     }),
@@ -24,8 +28,6 @@ export default defineConfig({
         globals: {
           svelte: "Svelte",
         },
-        inlineDynamicImports: false,
-        preserveModules: false,
       },
     },
   },

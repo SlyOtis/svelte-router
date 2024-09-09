@@ -1,6 +1,6 @@
 {
   "name": "sly-svelte-location-router",
-  "version": "2.1.4",
+  "version": "2.1.5",
   "type": "module",
   "description": "A simple svelte router based on location API",
   "keywords": [
@@ -27,11 +27,9 @@
   "main": "./dist/sly-svelte-location-router.umd.js",
   "module": "./dist/sly-svelte-location-router.es.js",
   "types": "./dist/index.d.ts",
-  "svelte": "./dist/sly-svelte-location-router.es.js",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "svelte": "./dist/sly-svelte-location-router.es.js",
       "import": "./dist/sly-svelte-location-router.es.js",
       "require": "./dist/sly-svelte-location-router.umd.js"
     }
