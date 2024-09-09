@@ -19,7 +19,6 @@ export default defineConfig({
     lib: {
       entry: path.resolve(__dirname, "src/lib/index.ts"),
       name: "sly-svelte-location-router",
-      formats: ['es', 'umd'],
       fileName: (format) => `sly-svelte-location-router.${format}.js`,
     },
     rollupOptions: {
