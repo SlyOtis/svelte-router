@@ -40,7 +40,7 @@
     "build": "vite build",
     "build-svelte": "svelte-package",
     "preview": "vite preview",
-    "check": "svelte-check --tsconfig ../tsconfig.json && tsc -p tsconfig.node.json",
+    "check": "svelte-check --tsconfig ./tsconfig.json",
     "prepublishOnly": "npm run check && npm run build-svelte"
   },
   "devDependencies": {
