@@ -1,6 +1,6 @@
 {
   "name": "sly-svelte-location-router",
-  "version": "2.1.9",
+  "version": "2.1.10",
   "type": "module",
   "description": "A simple svelte router based on location API",
   "keywords": [
@@ -21,27 +21,30 @@
   },
   "author": "Martin Ottersland",
   "license": "MIT",
-  "files": [
-    "dist"
-  ],
-  "main": "./dist/sly-svelte-location-router.umd.js",
-  "module": "./dist/sly-svelte-location-router.es.js",
+  "main": "./dist/index.js",
+  "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "svelte": "./dist/index.js",
   "exports": {
     ".": {
       "types": "./dist/index.d.ts",
-      "import": "./dist/sly-svelte-location-router.es.js",
-      "require": "./dist/sly-svelte-location-router.umd.js"
+      "import": "./dist/index.js",
+      "svelte": "./dist/index.js"
     }
   },
+  "files": [
+    "dist"
+  ],
   "scripts": {
     "dev": "vite",
     "build": "vite build",
+    "build-svelte": "svelte-package",
     "preview": "vite preview",
     "check": "svelte-check --tsconfig ../tsconfig.json && tsc -p tsconfig.node.json",
-    "bp": "pnpm build && pnpm publish"
+    "prepublishOnly": "npm run check && npm run build-svelte"
   },
   "devDependencies": {
+    "@sveltejs/package": "^2.3.4",
     "@sveltejs/vite-plugin-svelte": "^3.1.1",
     "@tsconfig/svelte": "^5.0.4",
     "@types/node": "^22.5.4",
