@@ -15,9 +15,35 @@ function parseQueryParams(search: string): Map<string, string> {
     return params;
 }
 
+function sortRouteKeys(routes: Routes) {
+    return Object.keys(routes).sort((a, b) => {
+        // Count slashes
+        const slashCountA = (a.match(/\//g) || []).length;
+        const slashCountB = (b.match(/\//g) || []).length;
+
+        // If slash counts are different, sort by slash count
+        if (slashCountA !== slashCountB) {
+            return slashCountB - slashCountA;
+        }
+
+        // If slash counts are the same, compare segment lengths
+        const segmentsA = a.split('/').filter(Boolean);
+        const segmentsB = b.split('/').filter(Boolean);
+
+        for (let i = 0; i < Math.min(segmentsA.length, segmentsB.length); i++) {
+            if (segmentsA[i].length !== segmentsB[i].length) {
+                return segmentsB[i].length - segmentsA[i].length;
+            }
+        }
+
+        // If all segments have the same length, maintain original order
+        return 0;
+    });
+}
+// TODO:: Allow sorting override?
 function findMatchingRoute(pathname: string): MatchedRoute | null {
     let routes = getRoutes();
-    for (const routePath of Object.keys(routes)) {
+    for (const routePath of sortRouteKeys(routes)) {
         const matchFn = match(routePath, {decode: decodeURIComponent});
         const result = matchFn(pathname);
         if (result) {
@@ -149,12 +175,12 @@ export function initRouter(routes: Routes) {
         updateRouteStore(arguments[2] as string, arguments[0]);
     };
 
-    const originalAssign = window.location.assign;
+    // const originalAssign = window.location.assign;
     Object.defineProperty(window.location, "assign", function (url: string) {
         handleNavigation(url, Config.state);
     });
 
-    const originalReplace = window.location.replace;
+    // const originalReplace = window.location.replace;
     Object.defineProperty(window.location, "replace", function (url: string) {
         handleNavigation(url, Config.state); //TODO:: Fix state reset
     });
