@@ -12,6 +12,7 @@ A lightweight and flexible router for Svelte applications, leveraging the power 
 - Robust path matching using path-to-regexp
 - Support for path parameters and query parameters
 - Programmatic navigation
+- Automatic route sorting for optimal matching
 
 ## Installation
 
@@ -30,10 +31,11 @@ pnpm install sly-svelte-router
     '/': () => import('./routes/Home.svelte'),
     '/about': () => import('./routes/About.svelte'),
     '/user/:id': () => import('./routes/User.svelte'),
-    '/posts/:category/:postId': () => {
+    '/posts/:category/:postId': {
       name: "posts",
       component: () => import('./routes/Post.svelte')
     },
+    '/redirect': '/about',
     '*': () => import('./routes/404.svelte'),
   };
 
@@ -44,6 +46,21 @@ pnpm install sly-svelte-router
   <div>Loading...</div>
 </Router>
 ```
+
+## Route Definitions
+
+sly-svelte-router supports three types of route definitions:
+
+1. `RouteComponent`: A function returning a Promise that resolves to a component.
+   Example: `() => import('./routes/Home.svelte')`
+
+2. `RouteData`: An object with 'name' and 'component' properties.
+   Example: `{ name: "posts", component: () => import('./routes/Post.svelte') }`
+
+3. `string`: A pathname string for redirection.
+   Example: `'/about'`
+
+Routes are automatically sorted for optimal matching based on specificity and complexity.
 
 ## Path Matching
 
@@ -60,6 +77,18 @@ Examples:
 - `/post/:category/:title?` matches `/post/tech` and `/post/tech/new-article`
 - `/files/:path*` matches `/files`, `/files/document.pdf`, `/files/images/photo.jpg`
 
+## Route Redirection
+
+You can easily set up route redirections by specifying the target path as a string:
+
+```typescript
+const routes: Routes = {
+  '/old-path': '/new-path',
+  '/legacy-user/:id': '/user/:id',  // Redirects with parameters
+  '/outdated': '/about',
+};
+```
+
 ## API
 
 ### `Router` Component
@@ -67,7 +96,7 @@ Examples:
 The main component for setting up routing.
 
 Props:
-- `routes`: An object mapping route paths to component imports
+- `routes`: An object mapping route paths to component imports or route definitions
 - `fallback`: A function returning a Promise that imports the fallback component
 
 ### Navigation
