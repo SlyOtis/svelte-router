@@ -42,33 +42,37 @@ function sortRouteKeys(routes: Routes) {
 }
 // TODO:: Allow sorting override?
 function findMatchingRoute(pathname: string): MatchedRoute | null {
-    let routes = getRoutes();
-    for (const routePath of sortRouteKeys(routes)) {
-        const matchFn = match(routePath, {decode: decodeURIComponent});
-        const result = matchFn(pathname);
-        if (result) {
-            const routeData = routes[routePath]
+    try {
+        let routes = getRoutes();
+        for (const routePath of sortRouteKeys(routes)) {
+            const matchFn = match(routePath, {decode: decodeURIComponent});
+            const result = matchFn(pathname);
+            if (result) {
+                const routeData = routes[routePath]
 
-            if (typeof routeData === 'string') {
-                setLocation(routeData)
-                return findMatchingRoute(routeData)
-            } else if (typeof routeData === 'function') {
-                return {
-                    params: result.params as RouteParams,
-                    name: routePath,
-                    component: routeData,
-                };
-            } else if ("name" in routeData && "component" in routeData) {
-                return {
-                    params: result.params as RouteParams,
-                    name: routeData.name,
-                    component: routeData.component,
+                if (typeof routeData === 'string') {
+                    setLocation(routeData)
+                    return findMatchingRoute(routeData)
+                } else if (typeof routeData === 'function') {
+                    return {
+                        params: result.params as RouteParams,
+                        name: routePath,
+                        component: routeData,
+                    };
+                } else if ("name" in routeData && "component" in routeData) {
+                    return {
+                        params: result.params as RouteParams,
+                        name: routeData.name,
+                        component: routeData.component,
+                    }
                 }
+                throw new Error("Invalid route data")
             }
-
-            throw new Error("Invalid route data")
         }
+    } catch (e) {
+        console.warn("Invalid path definition", pathname);
     }
+
     return null;
 }
 
