@@ -5,7 +5,7 @@
     import type {RouteDefinition, Routes} from './types';
 
     export let routes: Routes
-    export let fallback: RouteDefinition
+    export let fallback: RouteDefinition | undefined = undefined
 
     let routeComp: any = null
     let loading = true
