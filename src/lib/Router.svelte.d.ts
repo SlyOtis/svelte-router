@@ -3,7 +3,7 @@ import type {RouteDefinition, Routes} from "./types";
 
 export interface RouterProps {
     routes: Routes
-    fallback: RouteDefinition
+    fallback?: RouteDefinition
 }
 
 export default class Router extends SvelteComponent<RouterProps> {}

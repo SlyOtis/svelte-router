@@ -11,6 +11,6 @@
 
 </script>
 
-<Router {routes} fallback="/about">
+<Router {routes}>
   <div>Custom loading component...</div>
 </Router>
