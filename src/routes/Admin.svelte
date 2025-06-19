@@ -51,14 +51,14 @@
     
     <div class="navigation">
         <button on:click={() => navigate("/")}>Home</button>
-        <button on:click={() => navigate("/about")}>About</button>
-        <button on:click={() => navigate("/user/test")}>User</button>
-        <button on:click={() => navigate("/shop")}>Shop</button>
-        <button on:click={() => navigate("/admin")}>Dashboard</button>
-        <button on:click={() => navigate("/admin/settings")}>Settings</button>
-        <button on:click={() => navigate("/admin/profile")}>Profile</button>
-        <button on:click={() => navigate("/admin/users")}>Users</button>
-        <button on:click={() => navigate("/admin/users/123")}>User 123</button>
+        <button on:click={() => navigate("../about")}>About</button>
+        <button on:click={() => navigate("../user/test")}>User</button>
+        <button on:click={() => navigate("../shop")}>Shop</button>
+        <button on:click={() => navigate("")}>Dashboard</button>
+        <button on:click={() => navigate("settings")}>Settings</button>
+        <button on:click={() => navigate("profile")}>Profile</button>
+        <button on:click={() => navigate("users")}>Users</button>
+        <button on:click={() => navigate("users/123")}>User 123</button>
     </div>
     
     <div class="content">
@@ -83,7 +83,7 @@
     }
     
     .router-info {
-        background-color: #f5f5f5;
+        background-color: #c8e6c9;
         padding: 1rem;
         border-radius: 4px;
         width: 100%;

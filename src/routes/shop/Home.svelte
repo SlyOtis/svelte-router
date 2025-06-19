@@ -19,10 +19,10 @@
     </div>
     
     <div class="nav-buttons">
-        <button on:click={() => navigate('/shop/products')}>View Products</button>
-        <button on:click={() => navigate('/shop/product/1')}>Product 1</button>
-        <button on:click={() => navigate('/shop/cart')}>Go to Cart</button>
-        <button on:click={() => navigate('/')}>Main Home</button>
+        <button on:click={() => navigate("products")}>View Products</button>
+        <button on:click={() => navigate("product/1")}>Product 1</button>
+        <button on:click={() => navigate("cart")}>Go to Cart</button>
+        <button on:click={() => navigate("/")}>Main Home</button>
     </div>
 </div>
 
@@ -37,7 +37,7 @@
     }
     
     .route-info {
-        background-color: #e3f2fd;
+        background-color: #ffd3b6;
         padding: 1rem;
         border-radius: 4px;
         margin-bottom: 1.5rem;

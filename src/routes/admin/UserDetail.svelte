@@ -22,9 +22,9 @@
     </div>
     
     <div class="nav-buttons">
-        <button on:click={() => navigate('/admin/users')}>Back to Users</button>
-        <button on:click={() => navigate('/admin')}>Dashboard</button>
-        <button on:click={() => navigate('/')}>Main Home</button>
+        <button on:click={() => navigate("..")}>Back to Users</button>
+        <button on:click={() => navigate("../../")}>Dashboard</button>
+        <button on:click={() => navigate("/")}>Main Home</button>
     </div>
 </div>
 
@@ -39,7 +39,7 @@
     }
     
     .route-info {
-        background-color: #e8f5e9;
+        background-color: #c8e6c9;
         padding: 1rem;
         border-radius: 4px;
         margin-bottom: 1.5rem;

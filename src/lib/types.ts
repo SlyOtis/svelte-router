@@ -89,3 +89,6 @@ export type MatchedLocationRoute = {
   /** Che current URL of the matched route */
   url: URL
 };
+
+
+export type RouterMatch = () => boolean

@@ -48,13 +48,13 @@
     
     <div class="navigation">
         <button on:click={() => navigate("/")}>Home</button>
-        <button on:click={() => navigate("/about")}>About</button>
-        <button on:click={() => navigate("/user/test")}>User</button>
-        <button on:click={() => navigate("/admin")}>Admin</button>
-        <button on:click={() => navigate("/shop")}>Shop Main</button>
-        <button on:click={() => navigate("/shop/products")}>Products</button>
-        <button on:click={() => navigate("/shop/product/1")}>Product 1</button>
-        <button on:click={() => navigate("/shop/cart")}>Cart</button>
+        <button on:click={() => navigate("../about")}>About</button>
+        <button on:click={() => navigate("../user/test")}>User</button>
+        <button on:click={() => navigate("../admin")}>Admin</button>
+        <button on:click={() => navigate("")}>Shop Main</button>
+        <button on:click={() => navigate("products")}>Products</button>
+        <button on:click={() => navigate("product/1")}>Product 1</button>
+        <button on:click={() => navigate("cart")}>Cart</button>
     </div>
     
     <div class="content">
@@ -79,7 +79,7 @@
     }
     
     .router-info {
-        background-color: #f5f5f5;
+        background-color: #ffd3b6;
         padding: 1rem;
         border-radius: 4px;
         width: 100%;

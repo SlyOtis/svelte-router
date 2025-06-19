@@ -22,10 +22,10 @@
     </div>
     
     <div class="nav-buttons">
-        <button on:click={() => navigate('/shop/products')}>Back to Products</button>
-        <button on:click={() => navigate('/shop')}>Shop Home</button>
-        <button on:click={() => navigate('/shop/cart')}>Add to Cart</button>
-        <button on:click={() => navigate('/')}>Main Home</button>
+        <button on:click={() => navigate("../../products")}>Back to Products</button>
+        <button on:click={() => navigate("../../")}>Shop Home</button>
+        <button on:click={() => navigate("../../cart")}>Add to Cart</button>
+        <button on:click={() => navigate("/")}>Main Home</button>
     </div>
 </div>
 
@@ -40,7 +40,7 @@
     }
     
     .route-info {
-        background-color: #e3f2fd;
+        background-color: #ffd3b6;
         padding: 1rem;
         border-radius: 4px;
         margin-bottom: 1.5rem;

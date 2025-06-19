@@ -19,10 +19,10 @@
     </div>
     
     <div class="nav-buttons">
-        <button on:click={() => navigate('/admin/users')}>Users</button>
-        <button on:click={() => navigate('/admin/settings')}>Settings</button>
-        <button on:click={() => navigate('/admin/profile')}>Profile</button>
-        <button on:click={() => navigate('/')}>Main Home</button>
+        <button on:click={() => navigate("users")}>Users</button>
+        <button on:click={() => navigate("settings")}>Settings</button>
+        <button on:click={() => navigate("profile")}>Profile</button>
+        <button on:click={() => navigate("/")}>Main Home</button>
     </div>
 </div>
 
@@ -37,7 +37,7 @@
     }
     
     .route-info {
-        background-color: #e8f5e9;
+        background-color: #c8e6c9;
         padding: 1rem;
         border-radius: 4px;
         margin-bottom: 1.5rem;

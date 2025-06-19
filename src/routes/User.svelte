@@ -46,11 +46,11 @@
     
     <div class="navigation">
         <button on:click={() => navigate("/")}>Home</button>
-        <button on:click={() => navigate("/about")}>About</button>
-        <button on:click={() => navigate("/user/test")}>User Test</button>
-        <button on:click={() => navigate("/user/123")}>User 123</button>
-        <button on:click={() => navigate("/admin")}>Admin</button>
-        <button on:click={() => navigate("/shop")}>Shop</button>
+        <button on:click={() => navigate("../about")}>About</button>
+        <button on:click={() => navigate("test")}>User Test</button>
+        <button on:click={() => navigate("123")}>User 123</button>
+        <button on:click={() => navigate("../admin")}>Admin</button>
+        <button on:click={() => navigate("../shop")}>Shop</button>
     </div>
 </section>
 
@@ -71,7 +71,7 @@
     }
     
     .router-info, .user-info {
-        background-color: #f5f5f5;
+        background-color: #e1f5fe;
         padding: 1rem;
         border-radius: 4px;
         width: 100%;
@@ -79,7 +79,7 @@
     }
     
     .user-info {
-        background-color: #e8f4f8;
+        background-color: #bbdefb;
     }
     
     .navigation {

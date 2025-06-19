@@ -1,6 +1,7 @@
 import {match} from "path-to-regexp";
 import type {MatchedLocationRoute, MatchedRoute, RouteDefinition, RouteParams, Routes} from "./types";
 import {routeStore} from "./store";
+import type {Readable} from "svelte/store";
 
 class Config {
     public static routes: Routes | null = null;
@@ -40,6 +41,7 @@ function sortRouteKeys(routes: Routes) {
         return 0;
     });
 }
+
 // TODO:: Allow sorting override?
 function findMatchingRoute(pathname: string): MatchedRoute | null {
     try {
@@ -133,8 +135,7 @@ function handleNavigation(url: string, state: any = null) {
 
 function testRoutes(routes: Routes) {
     try {
-        Object.keys(routes).forEach((path) => {
-        });
+        Object.keys(routes).forEach((path) => {});
     } catch (e) {
         throw new Error(
             "Invalid routes, see https://github.com/pillarjs/path-to-regexp for pattern",
@@ -142,7 +143,7 @@ function testRoutes(routes: Routes) {
     }
 }
 
-export function initRouter(routes: Routes) {
+export function initRouter(routes: Routes): Readable<boolean> {
     Config.routes = routes;
 
     testRoutes(routes);
