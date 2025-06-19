@@ -24,3 +24,5 @@ dist-ssr
 *.sw?
 test
 .svelte-kit
+CLAUDE.md
+.claude
