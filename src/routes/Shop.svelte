@@ -1,74 +1,116 @@
-<script>
-  import { Router, handleNavClick, goBack } from '../lib';
-  
-  export let remainingPath = '';
-  
-  const routes = {
-    '/': () => import('./shop/Home.svelte'),
-    '/products': () => import('./shop/Products.svelte'),
-    '/products/:id': () => import('./shop/ProductDetail.svelte'),
-    '/cart': () => import('./shop/Cart.svelte')
-  };
+<script lang="ts">
+    import { onMount } from "svelte";
+    import { Router, navigate, currentRoute, routeParams, queryParams, routeName, type RouteProps } from "../lib";
+    
+    export let props: RouteProps | null = null;
+    export let remainingPath = '';
+    
+    let route = "";
+    let params = {};
+    let query = new Map();
+    let name = "";
+    
+    const routes = {
+        '/': () => import('./shop/Home.svelte'),
+        '/products': () => import('./shop/Products.svelte'),
+        '/product/:id': () => import('./shop/ProductDetail.svelte'),
+        '/cart': () => import('./shop/Cart.svelte')
+    };
+    
+    onMount(() => {
+        if (props != null) {
+            console.log(props);
+        }
+        
+        const unsubscribeRoute = currentRoute.subscribe(value => route = value);
+        const unsubscribeParams = routeParams.subscribe(value => params = value);
+        const unsubscribeQuery = queryParams.subscribe(value => query = value);
+        const unsubscribeName = routeName.subscribe(value => name = value || "");
+        
+        return () => {
+            unsubscribeRoute();
+            unsubscribeParams();
+            unsubscribeQuery();
+            unsubscribeName();
+        };
+    });
 </script>
 
-<div class="shop">
-  <h1>Shop</h1>
-  
-  <div class="nav" on:click={handleNavClick}>
-    <a href="/">Home</a>
-    <a href="/shop">Shop Home</a>
-    <a href="/shop/products">Products</a>
-    <a href="/shop/cart">Cart</a>
-    <button class="back-btn" on:click={goBack}>← Go Back</button>
-  </div>
-  
-  <div class="content">
-    <Router routes={routes} {remainingPath} />
-  </div>
-</div>
+<section>
+    <h1>Shop Page</h1>
+    
+    <div class="router-info">
+        <p><strong>Current Route:</strong> {route}</p>
+        <p><strong>Route Name:</strong> {name}</p>
+        <p><strong>Route Params:</strong> {JSON.stringify(params)}</p>
+        <p><strong>Query Params:</strong> {JSON.stringify(Array.from(query.entries()))}</p>
+    </div>
+    
+    <div class="navigation">
+        <button on:click={() => navigate("/")}>Home</button>
+        <button on:click={() => navigate("/about")}>About</button>
+        <button on:click={() => navigate("/user/test")}>User</button>
+        <button on:click={() => navigate("/admin")}>Admin</button>
+        <button on:click={() => navigate("/shop")}>Shop Main</button>
+        <button on:click={() => navigate("/shop/products")}>Products</button>
+        <button on:click={() => navigate("/shop/product/1")}>Product 1</button>
+        <button on:click={() => navigate("/shop/cart")}>Cart</button>
+    </div>
+    
+    <div class="content">
+        <Router routes={routes} {remainingPath} />
+    </div>
+</section>
 
 <style>
-  .shop {
-    padding: 1rem;
-    text-align: center;
-    max-width: 1200px;
-    margin: 0 auto;
-  }
-  
-  h1 {
-    margin-bottom: 1rem;
-  }
-  
-  .nav {
-    display: flex;
-    gap: 0.5rem;
-    justify-content: center;
-    margin-bottom: 1rem;
-    flex-wrap: wrap;
-  }
-  
-  a {
-    background: #2196F3;
-    color: white;
-    padding: 0.5rem 1rem;
-    border-radius: 5px;
-    text-decoration: none;
-  }
-  
-  .back-btn {
-    background: #f44336;
-    color: white;
-    padding: 0.5rem 1rem;
-    border: none;
-    border-radius: 5px;
-    font-weight: bold;
-    cursor: pointer;
-  }
-  
-  .content {
-    padding: 1rem;
-    background: #f5f5f5;
-    border-radius: 8px;
-    min-height: 200px;
-  }
+    section {
+        position: relative;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        flex-direction: column;
+        padding: 1rem;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+    
+    h1 {
+        margin-bottom: 2rem;
+    }
+    
+    .router-info {
+        background-color: #f5f5f5;
+        padding: 1rem;
+        border-radius: 4px;
+        width: 100%;
+        margin-bottom: 2rem;
+    }
+    
+    .navigation {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 0.5rem;
+        margin-bottom: 2rem;
+    }
+    
+    button {
+        padding: 0.5rem 1rem;
+        background-color: #4CAF50;
+        color: white;
+        border: none;
+        border-radius: 4px;
+        cursor: pointer;
+    }
+    
+    button:hover {
+        background-color: #45a049;
+    }
+    
+    .content {
+        padding: 1rem;
+        background: #f5f5f5;
+        border-radius: 8px;
+        min-height: 200px;
+        width: 100%;
+    }
 </style>
