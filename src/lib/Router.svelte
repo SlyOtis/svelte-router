@@ -1,52 +1,57 @@
 <script lang="ts">
-    import {onMount, onDestroy} from 'svelte';
-    import {routeStore} from './store';
-    import {execFallback, initRouter, navigate} from './router';
-    import type {RouteDefinition, Routes} from './types';
+  import {onMount} from 'svelte';
+  import {execFallback, initRouter} from './router';
+  import type {RouteDefinition, Routes} from './types';
 
-    let {routes, fallback}: {routes: Routes, fallback: RouteDefinition} = $props()
+  let {routes, fallback, children}: { routes: Routes, fallback: RouteDefinition, children: any } = $props()
 
-    let routeComp: any = $state(null)
-    let loading: boolean = true
-    let routeProps: any = null
-    let isInitialized: any = null
-    let routeName: string = $state('')
+  let RouteComp: any = $state(null)
+  let loading: boolean = $state(true)
+  let routeProps: any = $state(null)
+  let isInitialized: boolean = $state(false)
+  let routeName: string = $state('')
 
-    onMount(() => {
-        initRouter(routes);
-        isInitialized = true
-    });
+  onMount(() => {
+    const unsubscribe = initRouter(routes).subscribe(({route, hasFallback}) => {
+      console.log("we got some", route)
+      if (route !== null) {
+        if (routeName === route.name) {
+          return
+        }
 
-    onDestroy(() => {
-      console.log('destruction')
-    })
-
-    $effect(() => {
-
-    })
-
-    $: if ($routeStore && $routeStore.component) {
         loading = true;
-        const {component, ...props} = $routeStore;
-        console.log(props)
-        component().then(module => {
-            routeComp = module.default;
-            routeProps = props;
-            loading = false;
+        const {component, ...props} = route;
+        component().then((module: any) => {
+          RouteComp = module.default;
+          routeProps = props;
+          routeName = route.name
+          loading = false;
+          console.log(routeName)
         });
-    } else if (fallback !== undefined && isInitialized) {
+      } else if (fallback !== undefined && isInitialized && hasFallback) {
         loading = true;
         execFallback(fallback)().then(module => {
-            routeComp = module.default;
-            routeProps = null;
-            loading = false;
+          RouteComp = module.default;
+          routeProps = null;
+          loading = false;
+          routeName = '__fallback'
         })
+      }
+    });
+
+    isInitialized = true
+    return () => {
+      unsubscribe()
     }
+  });
 </script>
 
 {#key routeName}
-{#if loading}
-    <slot></slot>
-{:else}
-    <svelte:component this={routeComp} props={routeProps} />
-{/if}
+    <div >hello</div>
+    {#if loading}
+        {@render children?.()}
+    {:else if RouteComp}
+        <div>test</div>
+        <RouteComp props={routeProps}></RouteComp>
+    {/if}
+{/key}

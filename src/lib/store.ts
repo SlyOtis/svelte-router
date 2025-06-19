@@ -1,5 +1,8 @@
 import {derived, type Readable, writable} from "svelte/store";
-import type {RouteComponent, RouteInfo, RouteParams} from "./types";
+import type {MatchedLocationRoute, RouteComponent, RouteInfo, RouteParams} from "./types";
+
+
+export const routerStore = writable<MatchedLocationRoute | null>(null);
 
 export const routeStore = writable<RouteInfo>({
     name: "",

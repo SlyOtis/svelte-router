@@ -1,7 +1,7 @@
 import {match} from "path-to-regexp";
 import type {MatchedLocationRoute, MatchedRoute, RouteDefinition, RouteParams, Routes} from "./types";
-import {routeStore} from "./store";
-import type {Readable} from "svelte/store";
+import {routerStore, routeStore} from "./store";
+import {derived, type Readable} from "svelte/store";
 
 class Config {
     public static routes: Routes | null = null;
@@ -43,9 +43,8 @@ function sortRouteKeys(routes: Routes) {
 }
 
 // TODO:: Allow sorting override?
-function findMatchingRoute(pathname: string): MatchedRoute | null {
+function findMatchingRoute(pathname: string, routes: Routes): MatchedRoute | null {
     try {
-        let routes = getRoutes();
         for (const routePath of sortRouteKeys(routes)) {
             const matchFn = match(routePath, {decode: decodeURIComponent});
             const result = matchFn(pathname);
@@ -54,7 +53,7 @@ function findMatchingRoute(pathname: string): MatchedRoute | null {
 
                 if (typeof routeData === 'string') {
                     setLocation(routeData)
-                    return findMatchingRoute(routeData)
+                    return findMatchingRoute(routeData, routes)
                 } else if (typeof routeData === 'function') {
                     return {
                         params: result.params as RouteParams,
@@ -78,9 +77,9 @@ function findMatchingRoute(pathname: string): MatchedRoute | null {
     return null;
 }
 
-function getLocationRoute(url: string): MatchedLocationRoute | null {
+function getLocationRoute(url: string, routes: Routes): MatchedLocationRoute | null {
     const parsedUrl = new URL(url, window.location.origin)
-    const matchedRoute = findMatchingRoute(parsedUrl.pathname)
+    const matchedRoute = findMatchingRoute(parsedUrl.pathname, routes)
     return matchedRoute ? {
         ...matchedRoute,
         url: parsedUrl,
@@ -101,7 +100,9 @@ function setLocation(url: string) {
 }
 
 function updateRouteStore(url: string, state: any = null): MatchedRoute | null {
-    const matchedRoute = getLocationRoute(url)
+    const matchedRoute = getLocationRoute(url, getRoutes())
+    routerStore.set(matchedRoute)
+
     if (!matchedRoute) {
         throw new Error("Route not found for url: " + url);
     }
@@ -111,7 +112,6 @@ function updateRouteStore(url: string, state: any = null): MatchedRoute | null {
     Config.state = state;
 
     // TODO:: What to do when there are no route?? hmmm
-
     routeStore.update((route) => ({
         ...route,
         pathname,
@@ -143,12 +143,15 @@ function testRoutes(routes: Routes) {
     }
 }
 
-export function initRouter(routes: Routes): Readable<boolean> {
-    Config.routes = routes;
-
+export function initRouter(routes: Routes): Readable<{ hasFallback: boolean, route: MatchedLocationRoute | null }> {
     testRoutes(routes);
-    if (Config.routes === null) {
-        throw new Error("Routes not found, run initRoutes");
+
+    console.log('Nested test', window.location.href)
+
+    if (Config.routes == null) {
+        Config.routes = routes;
+    } else {
+        Config.routes = {...Config.routes, ...routes} // TODO:: CHeck for collisions
     }
 
     updateRouteStore(window.location.href, history.state);
@@ -190,7 +193,10 @@ export function initRouter(routes: Routes): Readable<boolean> {
         handleNavigation(url, Config.state); //TODO:: Fix state reset
     });
 
-    return true
+    return derived(routerStore, state => {
+        const route = getLocationRoute(window.location.href, routes)
+        return {hasFallback: state === null && route === null, route};
+    });
 }
 
 export function execFallback(fallback: RouteDefinition): () => Promise<any> {
@@ -201,7 +207,7 @@ export function execFallback(fallback: RouteDefinition): () => Promise<any> {
     if (typeof fallback === 'function') {
         return fallback
     } else if (typeof fallback === 'string') { //TODO:: What to do with state here?
-        const matchedRoute = getLocationRoute(fallback)
+        const matchedRoute = getLocationRoute(fallback, getRoutes())
         if (!matchedRoute) {
             throw new Error("Routes not found or invalid fallback " + fallback + ", run initRoutes");
         }
