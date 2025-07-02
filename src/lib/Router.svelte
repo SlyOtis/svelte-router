@@ -1,7 +1,7 @@
 <script lang="ts">
   import {onMount, getContext, setContext} from 'svelte';
   import {writable, type Writable} from 'svelte/store';
-  import {resolveRoute} from './router';
+  import {resolveRoute, initRouter} from './router';
   import {globalUnresolvedRoute, globalRegisteredRoutes, globalRouteError} from './store';
   import type {RouteDefinition, Routes} from './types';
 
@@ -29,6 +29,10 @@
   });
 
   onMount(() => {
+    if (!parentRouterContext) {
+      initRouter();
+    }
+    
     globalRegisteredRoutes.update(registered => ({...registered, ...routes}));
 
     const unsubscribeUnresolved = unresolvedRouteStore.subscribe(unresolved => {
@@ -112,11 +116,9 @@
 </script>
 
 {#key routeName}
-    <div >hello</div>
     {#if loading}
         {@render children?.()}
     {:else if RouteComp}
-        <div>test</div>
         <RouteComp props={routeProps}></RouteComp>
     {/if}
 {/key}

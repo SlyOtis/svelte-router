@@ -1,74 +1,95 @@
 <script lang="ts">
-    import { Router, navigate } from "../lib";
-    
-    const routes = {
-        '/': () => import('./shop/Home.svelte'),
-        '/products': () => import('./shop/Products.svelte'),
-        '/product/:id': () => import('./shop/ProductDetail.svelte'),
-        '/cart': () => import('./shop/Cart.svelte')
-    };
+  import Router from "../lib/Router.svelte";
+  import type { Routes } from "../lib";
+  
+  const routes: Routes = {
+    '/': () => import('./shop/Home.svelte'),
+    '/products': () => import('./shop/Products.svelte'),
+    '/products/:id': () => import('./shop/ProductDetail.svelte'),
+    '/cart': () => import('./shop/Cart.svelte'),
+    '/checkout': () => import('./shop/Checkout.svelte'),
+    '/orders': '/checkout',
+  };
 </script>
 
-<section>
-    <h1>Shop Page</h1>
-    
-    <div class="navigation">
-        <button on:click={() => navigate("/")}>Home</button>
-        <button on:click={() => navigate("/about")}>About</button>
-        <button on:click={() => navigate("/user/test")}>User</button>
-        <button on:click={() => navigate("/admin")}>Admin</button>
-        <button on:click={() => navigate("/shop")}>Shop Main</button>
-        <button on:click={() => navigate("/shop/products")}>Products</button>
-        <button on:click={() => navigate("/shop/product/1")}>Product 1</button>
-        <button on:click={() => navigate("/shop/cart")}>Cart</button>
-    </div>
-    
-    <div class="content">
-        <Router routes={routes} />
-    </div>
-</section>
+<div class="shop-layout">
+  <div class="shop-header">
+    <h1>Shop</h1>
+    <p>E-commerce nested routing demonstration</p>
+  </div>
+  
+  <div class="shop-nav">
+    <a href="/shop">Home</a>
+    <a href="/shop/products">Products</a>
+    <a href="/shop/products/123">Product 123</a>
+    <a href="/shop/cart">Cart</a>
+    <a href="/shop/checkout">Checkout</a>
+    <a href="/shop/orders">Orders (redirect)</a>
+  </div>
+  
+  <div class="shop-content">
+    <Router {routes} fallback={() => import('./shop/NotFound.svelte')}>
+      <div class="loading">Loading shop content...</div>
+    </Router>
+  </div>
+</div>
 
 <style>
-    section {
-        position: relative;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        flex-direction: column;
-        padding: 1rem;
-        max-width: 800px;
-        margin: 0 auto;
-    }
-    
-    h1 {
-        margin-bottom: 2rem;
-    }
-    
-    .navigation {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-        margin-bottom: 2rem;
-    }
-    
-    button {
-        padding: 0.5rem 1rem;
-        background-color: #4CAF50;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-    }
-    
-    button:hover {
-        background-color: #45a049;
-    }
-    
-    .content {
-        padding: 1rem;
-        background: #f5f5f5;
-        border-radius: 8px;
-        min-height: 200px;
-        width: 100%;
-    }
+  .shop-layout {
+    border: 2px solid #4CAF50;
+    border-radius: 8px;
+    background: #f9f9f9;
+    overflow: hidden;
+  }
+  
+  .shop-header {
+    background: #4CAF50;
+    color: white;
+    padding: 1rem;
+    text-align: center;
+  }
+  
+  .shop-header h1 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.5rem;
+  }
+  
+  .shop-header p {
+    margin: 0;
+    opacity: 0.9;
+  }
+  
+  .shop-nav {
+    background: #e8f5e8;
+    padding: 1rem;
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .shop-nav a {
+    padding: 0.5rem 1rem;
+    background: #4CAF50;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 0.9rem;
+  }
+  
+  .shop-nav a:hover {
+    background: #45a049;
+  }
+  
+  .shop-content {
+    padding: 2rem;
+    min-height: 200px;
+  }
+  
+  .loading {
+    color: #666;
+    font-style: italic;
+    text-align: center;
+    padding: 2rem;
+  }
 </style>

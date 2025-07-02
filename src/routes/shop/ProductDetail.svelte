@@ -1,50 +1,92 @@
 <script lang="ts">
-    import { navigate } from '../../lib';
-    
-    let {props} = $props()
-    
-    let productId = $derived(params?.id);
+  let { props } = $props();
+  let params = props?.params || {};
 </script>
 
-<div class="product-detail">
-    <h2>🔍 Product {productId} Details</h2>
-    
-    <div class="nav-buttons">
-        <button on:click={() => navigate("/shop/products")}>Back to Products</button>
-        <button on:click={() => navigate("/shop")}>Shop Home</button>
-        <button on:click={() => navigate("/shop/cart")}>Add to Cart</button>
-        <button on:click={() => navigate("/")}>Main Home</button>
+<div class="shop-page">
+  <h2>📦 Product Detail</h2>
+  <p>Detailed view of product with nested routing</p>
+  
+  <div class="product-detail">
+    <h3>Product Information</h3>
+    <div class="detail-item">
+      <strong>Product ID:</strong> {params.id || 'No ID provided'}
     </div>
+    <div class="detail-item">
+      <strong>Route Pattern:</strong> <code>/shop/products/:id</code>
+    </div>
+    <div class="detail-item">
+      <strong>Price:</strong> $29.99
+    </div>
+    <div class="detail-item">
+      <strong>Description:</strong> This is a great product!
+    </div>
+  </div>
+  
+  <div class="actions">
+    <a href="/shop/products">← Back to Products</a>
+    <a href="/shop/cart">Add to Cart</a>
+  </div>
 </div>
 
 <style>
-    .product-detail {
-        padding: 2rem;
-        text-align: center;
-    }
-    
-    h2 {
-        margin-bottom: 1.5rem;
-    }
-    
-    .nav-buttons {
-        display: flex;
-        gap: 1rem;
-        justify-content: center;
-        flex-wrap: wrap;
-    }
-    
-    button {
-        padding: 0.8rem 1.5rem;
-        background: #2196F3;
-        color: white;
-        border: none;
-        border-radius: 5px;
-        font-weight: bold;
-        cursor: pointer;
-    }
-    
-    button:hover {
-        background: #1976D2;
-    }
+  .shop-page {
+    text-align: center;
+  }
+  
+  h2 {
+    color: #4CAF50;
+    margin-bottom: 1rem;
+  }
+  
+  .product-detail {
+    margin: 2rem 0;
+    padding: 1.5rem;
+    background: #34495e;
+    color: white;
+    border: 1px solid #4a6378;
+    border-radius: 8px;
+    text-align: left;
+  }
+  
+  .product-detail h3 {
+    margin-top: 0;
+    color: #4CAF50;
+    text-align: center;
+  }
+  
+  .detail-item {
+    margin: 1rem 0;
+    padding: 0.5rem;
+    background: #2c3e50;
+    border-radius: 4px;
+    color: white;
+  }
+  
+  .actions {
+    margin-top: 2rem;
+    display: flex;
+    gap: 1rem;
+    justify-content: center;
+    flex-wrap: wrap;
+  }
+  
+  .actions a {
+    padding: 0.75rem 1.5rem;
+    background: #4CAF50;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+  }
+  
+  .actions a:hover {
+    background: #45a049;
+  }
+  
+  code {
+    background: #2c3e50;
+    color: #4CAF50;
+    padding: 2px 4px;
+    border-radius: 2px;
+  }
 </style>

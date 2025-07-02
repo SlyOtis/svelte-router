@@ -1,78 +1,94 @@
 <script lang="ts">
-    import { Router, navigate } from "../lib";
-    
-    const routes = {
-        '/': () => import('./admin/Dashboard.svelte'),
-        '/settings': () => import('./admin/Settings.svelte'),
-        '/profile': () => import('./admin/Profile.svelte'),
-        '/users/*': () => import('./admin/Users.svelte'),
-        '/orders': '/admin/settings', // Placeholder redirects for now
-        '/revenue': '/admin/settings',
-        '/products': '/admin/settings'
-    };
+  import Router from "../lib/Router.svelte";
+  import type { Routes } from "../lib";
+  
+  const routes: Routes = {
+    '/': () => import('./admin/Dashboard.svelte'),
+    '/dashboard': () => import('./admin/Dashboard.svelte'),
+    '/settings': () => import('./admin/Settings.svelte'),
+    '/profile': () => import('./admin/Profile.svelte'),
+    '/users': () => import('./admin/Users.svelte'),
+    '/users/:id': () => import('./admin/UserDetail.svelte'),
+  };
 </script>
 
-<section>
+<div class="admin-layout">
+  <div class="admin-header">
     <h1>Admin Panel</h1>
-    
-    <div class="navigation">
-        <button on:click={() => navigate("/")}>Home</button>
-        <button on:click={() => navigate("/about")}>About</button>
-        <button on:click={() => navigate("/user/test")}>User</button>
-        <button on:click={() => navigate("/shop")}>Shop</button>
-        <button on:click={() => navigate("/admin")}>Dashboard</button>
-        <button on:click={() => navigate("/admin/settings")}>Settings</button>
-        <button on:click={() => navigate("/admin/profile")}>Profile</button>
-        <button on:click={() => navigate("/admin/users")}>Users</button>
-        <button on:click={() => navigate("/admin/users/123")}>User 123</button>
-    </div>
-    
-    <div class="content">
-        <Router routes={routes} />
-    </div>
-</section>
+    <p>Nested routing demonstration</p>
+  </div>
+  
+  <div class="admin-nav">
+    <a href="/admin">Dashboard</a>
+    <a href="/admin/users">Users</a>
+    <a href="/admin/users/123">User 123</a>
+    <a href="/admin/settings">Settings</a>
+    <a href="/admin/profile">Profile</a>
+  </div>
+  
+  <div class="admin-content">
+    <Router {routes} fallback={() => import('./admin/NotFound.svelte')}>
+      <div class="loading">Loading admin content...</div>
+    </Router>
+  </div>
+</div>
 
 <style>
-    section {
-        position: relative;
-        display: flex;
-        justify-content: center;
-        align-items: center;
-        flex-direction: column;
-        padding: 1rem;
-        max-width: 800px;
-        margin: 0 auto;
-    }
-    
-    h1 {
-        margin-bottom: 2rem;
-    }
-    
-    .navigation {
-        display: flex;
-        flex-wrap: wrap;
-        gap: 0.5rem;
-        margin-bottom: 2rem;
-    }
-    
-    button {
-        padding: 0.5rem 1rem;
-        background-color: #4CAF50;
-        color: white;
-        border: none;
-        border-radius: 4px;
-        cursor: pointer;
-    }
-    
-    button:hover {
-        background-color: #45a049;
-    }
-    
-    .content {
-        padding: 1rem;
-        background: #f5f5f5;
-        border-radius: 8px;
-        min-height: 200px;
-        width: 100%;
-    }
+  .admin-layout {
+    border: 2px solid #f44336;
+    border-radius: 8px;
+    background: #f9f9f9;
+    overflow: hidden;
+  }
+  
+  .admin-header {
+    background: #f44336;
+    color: white;
+    padding: 1rem;
+    text-align: center;
+  }
+  
+  .admin-header h1 {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.5rem;
+  }
+  
+  .admin-header p {
+    margin: 0;
+    opacity: 0.9;
+  }
+  
+  .admin-nav {
+    background: #ffebee;
+    padding: 1rem;
+    display: flex;
+    gap: 1rem;
+    flex-wrap: wrap;
+    border-bottom: 1px solid #ddd;
+  }
+  
+  .admin-nav a {
+    padding: 0.5rem 1rem;
+    background: #f44336;
+    color: white;
+    text-decoration: none;
+    border-radius: 4px;
+    font-size: 0.9rem;
+  }
+  
+  .admin-nav a:hover {
+    background: #d32f2f;
+  }
+  
+  .admin-content {
+    padding: 2rem;
+    min-height: 200px;
+  }
+  
+  .loading {
+    color: #666;
+    font-style: italic;
+    text-align: center;
+    padding: 2rem;
+  }
 </style>
