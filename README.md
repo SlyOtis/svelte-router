@@ -1,18 +1,18 @@
 # sly-svelte-location-router
 
-A lightweight and flexible router for Svelte applications, leveraging the power of the Location API and path-to-regexp for advanced routing capabilities.
+A lightweight and flexible router for Svelte applications with advanced nested routing capabilities, leveraging path-to-regexp for powerful route matching.
 
 ## Features
 
-- Simple and intuitive API
-- TypeScript support for enhanced developer experience
-- Lazy-loading of route components for optimized performance
-- Custom loading component support
-- Fallback route handling for 404 pages
-- Robust path matching using path-to-regexp
-- Support for path parameters and query parameters
-- Programmatic navigation
-- Automatic route sorting for optimal matching
+- **Nested Routing**: Full support for deeply nested router hierarchies
+- **Context-based Route Resolution**: Efficient segment-by-segment route resolution
+- **Fallback Propagation**: Error handling that bubbles up through router hierarchy
+- **Route Redirects**: Simple string-based route redirection
+- **Path Parameters**: Dynamic route parameters with full TypeScript support
+- **Lazy Loading**: Automatic code-splitting with dynamic imports
+- **Auto-initialization**: Routers initialize automatically when mounted
+- **TypeScript First**: Complete TypeScript support with strict typing
+- **Longest Path Matching**: Intelligent route sorting prioritizes longer, more specific paths
 
 ## Installation
 
@@ -20,7 +20,9 @@ A lightweight and flexible router for Svelte applications, leveraging the power 
 pnpm install sly-svelte-router
 ```
 
-## Usage
+## Basic Usage
+
+### Automatic Initialization (Recommended)
 
 ```svelte
 <script lang="ts">
@@ -30,106 +32,252 @@ pnpm install sly-svelte-router
   const routes: Routes = {
     '/': () => import('./routes/Home.svelte'),
     '/about': () => import('./routes/About.svelte'),
-    '/user/:id': () => import('./routes/User.svelte'),
-    '/posts/:category/:postId': {
-      name: "posts",
-      component: () => import('./routes/Post.svelte')
-    },
-    '/redirect': '/about',
-    '*': () => import('./routes/404.svelte'),
+    '/users/:id': () => import('./routes/UserDetail.svelte'),
+    '/legacy-path': '/about', // Redirect
   };
-
-  const fallback = () => import('./routes/404.svelte');
 </script>
 
-<Router {routes} {fallback}>
+<Router {routes} fallback={() => import('./routes/404.svelte')}>
   <div>Loading...</div>
 </Router>
 ```
 
-## Route Definitions
+### Manual Initialization
 
-sly-svelte-router supports three types of route definitions:
+For more control over when the router initializes, you can call `initRouter()` manually:
 
-1. `RouteComponent`: A function returning a Promise that resolves to a component.
-   Example: `() => import('./routes/Home.svelte')`
+```svelte
+<script lang="ts">
+  import { Router, initRouter } from 'sly-svelte-router';
+  import { onMount } from 'svelte';
+  import type { Routes } from 'sly-svelte-router';
 
-2. `RouteData`: An object with 'name' and 'component' properties.
-   Example: `{ name: "posts", component: () => import('./routes/Post.svelte') }`
+  const routes: Routes = {
+    '/': () => import('./routes/Home.svelte'),
+    '/about': () => import('./routes/About.svelte'),
+  };
 
-3. `string`: A pathname string for redirection.
-   Example: `'/about'`
+  onMount(() => {
+    // Initialize router manually after some setup
+    initRouter();
+  });
+</script>
 
-Routes are automatically sorted for optimal matching based on specificity and complexity.
-
-## Path Matching
-
-sly-svelte-router uses [path-to-regexp](https://github.com/pillarjs/path-to-regexp) for powerful and flexible route matching. This allows for:
-
-- **Named Parameters**: `/user/:id` matches `/user/123` and passes `{id: '123'}` as a parameter.
-- **Optional Parameters**: `/post/:id?` matches both `/post/123` and `/post`.
-- **Zero or more**: `/files/*` matches any number of segments after `/files/`.
-- **One or more**: `/files/:path+` requires at least one segment after `/files/`.
-- **Custom matching**: Use regular expressions for fine-grained control.
-
-Examples:
-- `/user/:id` matches `/user/123`
-- `/post/:category/:title?` matches `/post/tech` and `/post/tech/new-article`
-- `/files/:path*` matches `/files`, `/files/document.pdf`, `/files/images/photo.jpg`
-
-## Route Redirection
-
-You can easily set up route redirections by specifying the target path as a string:
-
-```typescript
-const routes: Routes = {
-  '/old-path': '/new-path',
-  '/legacy-user/:id': '/user/:id',  // Redirects with parameters
-  '/outdated': '/about',
-};
+<Router {routes} fallback={() => import('./routes/404.svelte')}>
+  <div>Loading...</div>
+</Router>
 ```
 
-## API
+## Nested Routing
 
-### `Router` Component
+Create complex nested route structures by using Router components within your route components:
 
-The main component for setting up routing.
+```svelte
+<!-- routes/Admin.svelte -->
+<script lang="ts">
+  import { Router } from 'sly-svelte-router';
+  import type { Routes } from 'sly-svelte-router';
+  
+  const routes: Routes = {
+    '/': () => import('./admin/Dashboard.svelte'),
+    '/users': () => import('./admin/Users.svelte'),
+    '/users/:id': () => import('./admin/UserDetail.svelte'),
+    '/settings': () => import('./admin/Settings.svelte'),
+  };
+</script>
 
-Props:
-- `routes`: An object mapping route paths to component imports or route definitions
-- `fallback`: A function returning a Promise that imports the fallback component
+<div class="admin-layout">
+  <nav><!-- Admin navigation --></nav>
+  
+  <main>
+    <Router {routes} fallback={() => import('./admin/NotFound.svelte')}>
+      <div>Loading admin content...</div>
+    </Router>
+  </main>
+</div>
+```
 
-### Navigation
+**URL Examples:**
+- `/admin` → Admin layout + Dashboard
+- `/admin/users` → Admin layout + Users list  
+- `/admin/users/123` → Admin layout + User detail for ID 123
+- `/admin/invalid` → Admin layout + Admin-specific 404 page
 
-Use the `navigate` function for programmatic navigation:
+## Route Resolution Strategy
+
+The router uses a sophisticated segment-by-segment resolution strategy:
+
+1. **Longest Path First**: Routes are sorted by length and specificity
+2. **Segment Consumption**: Each router consumes matching path segments  
+3. **Remaining Propagation**: Unmatched segments pass to nested routers
+4. **Fallback Bubbling**: Unresolved routes trigger fallbacks up the hierarchy
+
+**Example with `/shop/products/123`:**
+```
+Main Router: matches '/shop' → loads Shop component, remaining: ['products', '123']
+Shop Router: matches '/products/:id' → loads ProductDetail, remaining: []
+```
+
+## Route Definitions
+
+### Function Routes (Recommended)
+```typescript
+'/users/:id': () => import('./routes/UserDetail.svelte')
+```
+
+### Named Routes
+```typescript
+'/posts/:category/:id': {
+  name: 'post-detail',
+  component: () => import('./routes/PostDetail.svelte')
+}
+```
+
+### Redirects
+```typescript
+'/old-users': '/users',           // Simple redirect
+'/legacy/:id': '/users/:id'       // Parameter-preserving redirect
+```
+
+## Path Parameters
+
+Route parameters are automatically extracted and passed to components:
+
+```svelte
+<!-- UserDetail.svelte -->
+<script lang="ts">
+  let { props } = $props();
+  let params = props?.params || {};
+</script>
+
+<h1>User: {params.id}</h1>
+<p>Category: {params.category}</p>
+```
+
+**Supported Parameter Types:**
+- `:id` - Required parameter
+- `:id?` - Optional parameter  
+- `:path*` - Zero or more segments
+- `:path+` - One or more segments
+
+## Programmatic Navigation
 
 ```typescript
 import { navigate } from 'sly-svelte-router';
 
-navigate('/user/123', { someState: 'value' });
+// Navigate to a new route
+navigate('/users/123');
+
+// Works with nested routes
+navigate('/admin/users/456');
 ```
 
-### Stores
+## Error Handling & Fallbacks
 
-Access route information reactively:
+Fallbacks handle unmatched routes and can be defined at any router level:
 
-```typescript
-import { currentRoute, queryParams, routeState, routeHash, routeParams } from 'sly-svelte-router';
+```svelte
+<!-- Main app fallback -->
+<Router {routes} fallback={() => import('./routes/404.svelte')}>
+  <div>Loading...</div>
+</Router>
 
-$: console.log($currentRoute); // Current route path
-$: console.log($queryParams); // Map of query parameters
-$: console.log($routeState); // Current route state
-$: console.log($routeHash); // Current route hash
-$: console.log($routeParams); // Object containing route parameters
+<!-- Admin-specific fallback -->
+<Router {adminRoutes} fallback={() => import('./admin/NotFound.svelte')}>
+  <div>Loading admin...</div>
+</Router>
+```
+
+**Fallback Resolution:**
+1. Child router tries to match route
+2. If no match, checks for local fallback
+3. If no local fallback, error propagates to parent
+4. Parent router tries its fallback
+5. Process continues up the hierarchy
+
+## Advanced Examples
+
+### E-commerce Site Structure
+```
+/                    → Homepage
+/products           → Product list  
+/products/123       → Product detail
+/cart               → Shopping cart
+/admin              → Admin dashboard
+/admin/products     → Admin product management
+/admin/orders       → Admin order management
+```
+
+### Implementation:
+```svelte
+<!-- App.svelte -->
+<script lang="ts">
+  const routes = {
+    '/': () => import('./routes/Home.svelte'),
+    '/products': () => import('./routes/Products.svelte'),
+    '/products/:id': () => import('./routes/ProductDetail.svelte'),
+    '/cart': () => import('./routes/Cart.svelte'),
+    '/admin': () => import('./routes/Admin.svelte'),
+  };
+</script>
+
+<Router {routes} fallback={() => import('./routes/404.svelte')}>
+  <div>Loading...</div>
+</Router>
 ```
 
 ## TypeScript Support
 
-sly-svelte-router is written in TypeScript and provides type definitions out of the box for an enhanced development experience.
+Full TypeScript support with strict typing:
+
+```typescript
+import type { Routes, RouteParams, RouteDefinition } from 'sly-svelte-router';
+
+const routes: Routes = {
+  '/users/:id': () => import('./UserDetail.svelte')
+};
+
+// In your component
+let { props }: { props?: { params?: RouteParams } } = $props();
+```
 
 ## Performance
 
-Route components are lazy-loaded by default, ensuring that only the necessary code is loaded for each route, optimizing your application's performance.
+- **Lazy Loading**: Components loaded on-demand
+- **Code Splitting**: Automatic bundle splitting per route
+- **Efficient Matching**: O(log n) route resolution
+- **Context Sharing**: Minimal overhead for nested routers
+
+## Migration Guide
+
+### From Traditional Routers
+- Replace single route table with nested Router components
+- Move route-specific layouts into route components
+- Use fallback props instead of catch-all routes
+
+### From Hash-based Routers  
+- Remove hash-based route definitions
+- Use standard path-based routes
+- Redirects handle legacy hash URLs if needed
+
+## API Reference
+
+### `Router` Component
+- `routes: Routes` - Route configuration object
+- `fallback?: RouteDefinition` - Fallback component for unmatched routes
+- `children?` - Loading component (rendered during route transitions)
+
+### `navigate(path: string)`
+Programmatic navigation function.
+
+### `initRouter()`
+Manual router initialization function. Call this when you need precise control over when the router starts listening to navigation events. The Router component calls this automatically on mount, so manual initialization is only needed in special cases.
+
+### Types
+- `Routes` - Route configuration object type
+- `RouteDefinition` - Union type for route definitions
+- `RouteParams` - Route parameter object type
+- `RouteComponent` - Lazy-loaded component type
 
 ## License
 
@@ -137,4 +285,4 @@ MIT
 
 ## Contributing
 
-Contributions are welcome! Please feel free to submit a Pull Request.
+Contributions welcome! Please feel free to submit a Pull Request.

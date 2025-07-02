@@ -1,16 +1,7 @@
 import {match} from "path-to-regexp";
-import type {MatchedLocationRoute, MatchedRoute, RouteDefinition, RouteParams, Routes} from "./types";
-import {globalUnresolvedRoute, globalRouteError} from "./store";
-import {derived, type Readable} from "svelte/store";
+import type {MatchedRoute, RouteParams, Routes} from "./types";
+import {globalUnresolvedRoute} from "./store";
 
-
-function parseQueryParams(search: string): Map<string, string> {
-    const params = new Map<string, string>();
-    new URLSearchParams(search).forEach((value, key) => {
-        params.set(key, value);
-    });
-    return params;
-}
 
 function isValidRoutePattern(pattern: string): boolean {
     if (!pattern || typeof pattern !== 'string') return false;
