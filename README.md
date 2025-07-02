@@ -44,28 +44,24 @@ pnpm install sly-svelte-router
 
 ### Manual Initialization
 
-For more control over when the router initializes, you can call `initRouter()` manually:
+For advanced use cases where you need precise control over router initialization, you can use `initRouter()` instead of the Router component:
 
 ```svelte
 <script lang="ts">
-  import { Router, initRouter } from 'sly-svelte-router';
+  import { initRouter, navigate } from 'sly-svelte-router';
   import { onMount } from 'svelte';
-  import type { Routes } from 'sly-svelte-router';
-
-  const routes: Routes = {
-    '/': () => import('./routes/Home.svelte'),
-    '/about': () => import('./routes/About.svelte'),
-  };
 
   onMount(() => {
-    // Initialize router manually after some setup
+    // Initialize router manually - handles URL changes and navigation
     initRouter();
+    
+    // You'll need to implement your own route resolution logic
+    // This approach is for advanced users who want full control
   });
 </script>
 
-<Router {routes} fallback={() => import('./routes/404.svelte')}>
-  <div>Loading...</div>
-</Router>
+<!-- Custom routing implementation -->
+<div>Your custom route rendering logic here</div>
 ```
 
 ## Nested Routing
@@ -271,7 +267,7 @@ let { props }: { props?: { params?: RouteParams } } = $props();
 Programmatic navigation function.
 
 ### `initRouter()`
-Manual router initialization function. Call this when you need precise control over when the router starts listening to navigation events. The Router component calls this automatically on mount, so manual initialization is only needed in special cases.
+Manual router initialization function. Use this instead of the Router component when you need to implement custom route resolution logic. This function sets up URL change listening and navigation event handling, but you'll need to implement your own route matching and component rendering.
 
 ### Types
 - `Routes` - Route configuration object type
