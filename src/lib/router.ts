@@ -12,23 +12,29 @@ function parseQueryParams(search: string): Map<string, string> {
     return params;
 }
 
+function isValidRoutePattern(pattern: string): boolean {
+    if (!pattern || typeof pattern !== 'string') return false;
+    if (pattern === '/') return true;
+    
+    try {
+        match(pattern, {decode: decodeURIComponent});
+        return true;
+    } catch {
+        return false;
+    }
+}
+
 export function resolveRoute(segments: string[], routes: Routes): {
     matched: MatchedRoute | null;
     remaining: string[];
 } {
-    console.log('🔧 resolveRoute called with segments:', segments, 'routes:', Object.keys(routes));
-    
     if (segments.length === 0) {
-        console.log('📭 No segments - checking for root route "/"');
         if (routes['/']) {
             const routeData = routes['/'];
-            console.log('🎯 Root route found');
             if (typeof routeData === 'string') {
-                console.log('🔄 Root redirect to:', routeData);
                 const redirectSegments = routeData.split('/').filter(Boolean);
                 return resolveRoute(redirectSegments, routes);
             } else if (typeof routeData === 'function') {
-                console.log('🎯 Root function route matched');
                 return {
                     matched: {
                         params: {},
@@ -38,7 +44,6 @@ export function resolveRoute(segments: string[], routes: Routes): {
                     remaining: []
                 };
             } else if ("name" in routeData && "component" in routeData) {
-                console.log('🎯 Root named route matched');
                 return {
                     matched: {
                         params: {},
@@ -52,90 +57,75 @@ export function resolveRoute(segments: string[], routes: Routes): {
         return {matched: null, remaining: []};
     }
 
-    const sortedRouteKeys = Object.keys(routes).sort((a, b) => {
-        // First, sort by total path length (longer paths first)
-        if (a.length !== b.length) {
-            return b.length - a.length;
-        }
-        
-        // Then by number of segments (more segments first)
-        const segmentsA = a.split('/').filter(Boolean);
-        const segmentsB = b.split('/').filter(Boolean);
-        if (segmentsA.length !== segmentsB.length) {
-            return segmentsB.length - segmentsA.length;
-        }
-        
-        // Finally, prioritize static segments over dynamic ones
-        for (let i = 0; i < Math.min(segmentsA.length, segmentsB.length); i++) {
-            const isParamA = segmentsA[i].startsWith(':');
-            const isParamB = segmentsB[i].startsWith(':');
-            if (isParamA !== isParamB) {
-                return isParamA ? 1 : -1; // Static routes before param routes
+    const sortedRouteKeys = Object.keys(routes)
+        .filter(isValidRoutePattern)
+        .sort((a, b) => {
+            if (a.length !== b.length) {
+                return b.length - a.length;
             }
-        }
-        
-        return 0;
-    });
-
-    console.log('📋 Sorted route keys:', sortedRouteKeys);
+            
+            const segmentsA = a.split('/').filter(Boolean);
+            const segmentsB = b.split('/').filter(Boolean);
+            if (segmentsA.length !== segmentsB.length) {
+                return segmentsB.length - segmentsA.length;
+            }
+            
+            for (let i = 0; i < Math.min(segmentsA.length, segmentsB.length); i++) {
+                const isParamA = segmentsA[i].startsWith(':');
+                const isParamB = segmentsB[i].startsWith(':');
+                if (isParamA !== isParamB) {
+                    return isParamA ? 1 : -1;
+                }
+            }
+            
+            return 0;
+        });
 
     for (const routePath of sortedRouteKeys) {
-        console.log('🔍 Testing route:', routePath);
         const routeSegments = routePath.split('/').filter(Boolean);
         
-        // Try to match as many segments as possible, but don't require exact length match
-        // We'll test with the minimum between route segments and available segments
-        const segmentsToTest = Math.min(routeSegments.length, segments.length);
-        
-        // Skip if route has more segments than we can possibly match
         if (routeSegments.length > segments.length) {
-            console.log('⏭️ Route has more segments than available, skipping');
             continue;
         }
         
         const testPath = routeSegments.length === 0 ? '/' : '/' + segments.slice(0, routeSegments.length).join('/');
-        console.log('🧪 Testing path:', testPath, 'against pattern:', routePath);
         
-        const matchFn = match(routePath, {decode: decodeURIComponent});
-        const result = matchFn(testPath);
-        
-        if (result) {
-            console.log('✅ Route matched:', routePath, 'with params:', result.params);
-            const routeData = routes[routePath];
-            const remaining = segments.slice(routeSegments.length);
-            console.log('📦 Route data type:', typeof routeData, 'remaining segments:', remaining);
+        try {
+            const matchFn = match(routePath, {decode: decodeURIComponent});
+            const result = matchFn(testPath);
             
-            if (typeof routeData === 'string') {
-                console.log('🔄 Redirect to:', routeData);
-                const redirectSegments = routeData.split('/').filter(Boolean);
-                return resolveRoute([...redirectSegments, ...remaining], routes);
-            } else if (typeof routeData === 'function') {
-                console.log('🎯 Function route matched');
-                return {
-                    matched: {
-                        params: result.params as RouteParams,
-                        name: routePath,
-                        component: routeData,
-                    },
-                    remaining
-                };
-            } else if ("name" in routeData && "component" in routeData) {
-                console.log('🎯 Named route matched');
-                return {
-                    matched: {
-                        params: result.params as RouteParams,
-                        name: routeData.name,
-                        component: routeData.component,
-                    },
-                    remaining
-                };
+            if (result) {
+                const routeData = routes[routePath];
+                const remaining = segments.slice(routeSegments.length);
+                
+                if (typeof routeData === 'string') {
+                    const redirectSegments = routeData.split('/').filter(Boolean);
+                    return resolveRoute([...redirectSegments, ...remaining], routes);
+                } else if (typeof routeData === 'function') {
+                    return {
+                        matched: {
+                            params: result.params as RouteParams,
+                            name: routePath,
+                            component: routeData,
+                        },
+                        remaining
+                    };
+                } else if ("name" in routeData && "component" in routeData) {
+                    return {
+                        matched: {
+                            params: result.params as RouteParams,
+                            name: routeData.name,
+                            component: routeData.component,
+                        },
+                        remaining
+                    };
+                }
             }
-        } else {
-            console.log('❌ No match for:', testPath);
+        } catch {
+            continue;
         }
     }
     
-    console.log('💥 No routes matched');
     return {matched: null, remaining: segments};
 }
 
@@ -143,15 +133,12 @@ export function resolveRoute(segments: string[], routes: Routes): {
 export function initRouter() {
     if (typeof window === 'undefined') return;
     
-    console.log('🌍 Router initialized for:', window.location.pathname);
-    
     globalUnresolvedRoute.set({
         path: window.location.pathname,
         segments: window.location.pathname.split('/').filter(Boolean)
     });
 
     window.addEventListener("popstate", (event) => {
-        console.log('⬅️ Popstate event:', window.location.pathname);
         globalUnresolvedRoute.set({
             path: window.location.pathname,
             segments: window.location.pathname.split('/').filter(Boolean)
@@ -165,7 +152,6 @@ export function initRouter() {
             target.href.startsWith(window.location.origin)
         ) {
             e.preventDefault();
-            console.log('🔗 Link clicked:', target.href);
             const url = new URL(target.href);
             globalUnresolvedRoute.set({
                 path: url.pathname,
@@ -178,7 +164,6 @@ export function initRouter() {
     const originalPushState = history.pushState;
     history.pushState = function () {
         originalPushState.apply(this, arguments as any);
-        console.log('📤 Push state:', arguments[2]);
         const url = new URL(arguments[2] as string, window.location.origin);
         globalUnresolvedRoute.set({
             path: url.pathname,
@@ -189,7 +174,6 @@ export function initRouter() {
     const originalReplaceState = history.replaceState;
     history.replaceState = function () {
         originalReplaceState.apply(this, arguments as any);
-        console.log('🔄 Replace state:', arguments[2]);
         const url = new URL(arguments[2] as string, window.location.origin);
         globalUnresolvedRoute.set({
             path: url.pathname,
@@ -199,7 +183,6 @@ export function initRouter() {
 }
 
 export function navigate(path: string) {
-    console.log('🧭 Navigate to:', path);
     const url = new URL(path, window.location.origin);
     globalUnresolvedRoute.set({
         path: url.pathname,
