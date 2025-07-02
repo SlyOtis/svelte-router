@@ -1,29 +1,17 @@
 <script lang="ts">
-    import { routeStore, navigate, currentRoute, routeParams, type RouteProps } from '../../lib';
-    
-    export let props: RouteProps | null = null;
-    
-    let currentPath = "";
-    let params = {};
-    
-    currentRoute.subscribe(value => currentPath = value);
-    routeParams.subscribe(value => params = value);
-    
-    let userId = $derived($routeStore.params?.id);
+    import { navigate } from '../../lib';
+
+    let {params} = $props()
+
+    let userId = $derived(params?.id);
 </script>
 
 <div class="user-detail">
     <h2>👤 User {userId} Details</h2>
     
-    <div class="route-info">
-        <p><strong>Current Path:</strong> {currentPath}</p>
-        <p><strong>Params:</strong> {JSON.stringify(params)}</p>
-        <p><strong>User ID:</strong> {userId}</p>
-    </div>
-    
     <div class="nav-buttons">
-        <button on:click={() => navigate("..")}>Back to Users</button>
-        <button on:click={() => navigate("../../")}>Dashboard</button>
+        <button on:click={() => navigate("/admin/users")}>Back to Users</button>
+        <button on:click={() => navigate("/admin")}>Dashboard</button>
         <button on:click={() => navigate("/")}>Main Home</button>
     </div>
 </div>
@@ -36,14 +24,6 @@
     
     h2 {
         margin-bottom: 1.5rem;
-    }
-    
-    .route-info {
-        background-color: #c8e6c9;
-        padding: 1rem;
-        border-radius: 4px;
-        margin-bottom: 1.5rem;
-        text-align: left;
     }
     
     .nav-buttons {

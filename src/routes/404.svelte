@@ -1,7 +1,5 @@
 <script lang="ts">
-    import type {RouteProps} from "../lib";
-    export let props: RouteProps | null = null;
-
+    let {props} = $props()
 </script>
 
 <section>

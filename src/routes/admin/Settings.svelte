@@ -1,14 +1,14 @@
 <script>
-  import { navigateTo, goBack } from '../../lib';
+  import {navigate} from "../../lib";
+
 </script>
 
 <div class="settings">
   <h2>⚙️ Settings</h2>
   <div class="nav-buttons">
-    <button on:click={() => navigateTo('/admin')}>Dashboard</button>
-    <button on:click={() => navigateTo('/admin/users')}>Users</button>
-    <button on:click={() => navigateTo('/admin/profile')}>Profile</button>
-    <button class="back-btn" on:click={goBack}>Go Back</button>
+    <button on:click={() => navigate('/admin')}>Dashboard</button>
+    <button on:click={() => navigate('/admin/users')}>Users</button>
+    <button on:click={() => navigate('/admin/profile')}>Profile</button>
   </div>
 </div>
 

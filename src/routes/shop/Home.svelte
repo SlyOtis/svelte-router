@@ -1,27 +1,14 @@
 <script lang="ts">
-    import { navigate, currentRoute, routeParams, type RouteProps } from '../../lib';
-    
-    export let props: RouteProps | null = null;
-    
-    let currentPath = "";
-    let params = {};
-    
-    currentRoute.subscribe(value => currentPath = value);
-    routeParams.subscribe(value => params = value);
+    import { navigate } from '../../lib';
 </script>
 
 <div class="shop-home">
     <h2>🏠 Shop Home</h2>
     
-    <div class="route-info">
-        <p><strong>Current Path:</strong> {currentPath}</p>
-        <p><strong>Params:</strong> {JSON.stringify(params)}</p>
-    </div>
-    
     <div class="nav-buttons">
-        <button on:click={() => navigate("products")}>View Products</button>
-        <button on:click={() => navigate("product/1")}>Product 1</button>
-        <button on:click={() => navigate("cart")}>Go to Cart</button>
+        <button on:click={() => navigate("/shop/products")}>View Products</button>
+        <button on:click={() => navigate("/shop/product/1")}>Product 1</button>
+        <button on:click={() => navigate("/shop/cart")}>Go to Cart</button>
         <button on:click={() => navigate("/")}>Main Home</button>
     </div>
 </div>
@@ -34,14 +21,6 @@
     
     h2 {
         margin-bottom: 1.5rem;
-    }
-    
-    .route-info {
-        background-color: #ffd3b6;
-        padding: 1rem;
-        border-radius: 4px;
-        margin-bottom: 1.5rem;
-        text-align: left;
     }
     
     .nav-buttons {

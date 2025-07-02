@@ -86,6 +86,14 @@ function getLocationRoute(url: string, routes: Routes): MatchedLocationRoute | n
     } : null
 }
 
+function getPathRoute(path: string, routes: Routes): MatchedLocationRoute | null {
+    const matchedRoute = findMatchingRoute(path, routes)
+    return matchedRoute ? {
+        ...matchedRoute,
+        url: parsedUrl,
+    } : null
+}
+
 function setLocation(url: string) {
     const parsedUrl = new URL(url, window.location.origin)
     if (window.location.pathname !== parsedUrl.pathname) {
@@ -193,7 +201,12 @@ export function initRouter(routes: Routes): Readable<{ hasFallback: boolean, rou
         handleNavigation(url, Config.state); //TODO:: Fix state reset
     });
 
+    const startPath = window.location.pathname;
+
+    console.log('Start paht', startPath)
+
     return derived(routerStore, state => {
+        // TODO:: Resolve with the path prefix, so only do this if the path goes through
         const route = getLocationRoute(window.location.href, routes)
         return {hasFallback: state === null && route === null, route};
     });

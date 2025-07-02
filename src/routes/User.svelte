@@ -1,56 +1,27 @@
 <script lang="ts">
-    import { onMount } from "svelte";
-    import { navigate, currentRoute, routeParams, queryParams, routeName, type RouteProps } from "../lib";
-
-    export let props: RouteProps | null = null;
+    import { navigate, routeParams } from "../lib";
     
-    let route = "";
-    let params = {};
-    let query = new Map();
-    let name = "";
+    export let props: any = null;
     
-    onMount(() => {
-        if (props != null) {
-            console.log(props);
-        }
-        
-        const unsubscribeRoute = currentRoute.subscribe(value => route = value);
-        const unsubscribeParams = routeParams.subscribe(value => params = value);
-        const unsubscribeQuery = queryParams.subscribe(value => query = value);
-        const unsubscribeName = routeName.subscribe(value => name = value || "");
-        
-        return () => {
-            unsubscribeRoute();
-            unsubscribeParams();
-            unsubscribeQuery();
-            unsubscribeName();
-        };
-    });
+    $: userId = props?.id || "";
 </script>
 
 <section>
     <h1>User Page</h1>
     
-    <div class="router-info">
-        <p><strong>Current Route:</strong> {route}</p>
-        <p><strong>Route Name:</strong> {name}</p>
-        <p><strong>Route Params:</strong> {JSON.stringify(params)}</p>
-        <p><strong>Query Params:</strong> {JSON.stringify(Array.from(query.entries()))}</p>
-    </div>
-    
-    <div class="user-info">
-        {#if params && params.id}
-            <p><strong>User ID:</strong> {params.id}</p>
-        {/if}
-    </div>
+    {#if userId}
+        <div class="user-info">
+            <p><strong>User ID:</strong> {userId}</p>
+        </div>
+    {/if}
     
     <div class="navigation">
         <button on:click={() => navigate("/")}>Home</button>
-        <button on:click={() => navigate("../about")}>About</button>
-        <button on:click={() => navigate("test")}>User Test</button>
-        <button on:click={() => navigate("123")}>User 123</button>
-        <button on:click={() => navigate("../admin")}>Admin</button>
-        <button on:click={() => navigate("../shop")}>Shop</button>
+        <button on:click={() => navigate("/about")}>About</button>
+        <button on:click={() => navigate("/user/test")}>User Test</button>
+        <button on:click={() => navigate("/user/123")}>User 123</button>
+        <button on:click={() => navigate("/admin")}>Admin</button>
+        <button on:click={() => navigate("/shop")}>Shop</button>
     </div>
 </section>
 
@@ -70,16 +41,12 @@
         margin-bottom: 2rem;
     }
     
-    .router-info, .user-info {
-        background-color: #e1f5fe;
+    .user-info {
+        background-color: #bbdefb;
         padding: 1rem;
         border-radius: 4px;
         width: 100%;
         margin-bottom: 2rem;
-    }
-    
-    .user-info {
-        background-color: #bbdefb;
     }
     
     .navigation {
