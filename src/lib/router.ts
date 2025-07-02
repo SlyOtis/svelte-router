@@ -248,7 +248,7 @@ export function initRouter(parentRoute: string | undefined, routes: Routes): str
   return currentPath;
 }
 
-export function createRouteResolver(resolveStore: Readable<UnresolvedRoute | null>, routes: Routes): Readable<ResolvedRouteComponent> {
+export function createRouteResolver(resolveStore: Readable<UnresolvedRoute | null>, routes: Routes, isRoot: boolean = true, childResolveStore?: import('svelte/store').Writable<UnresolvedRoute | null>): Readable<ResolvedRouteComponent> {
   return derived(resolveStore, (store, set) => {
     if (!store) {
       set({ component: null, props: null, name: '', loading: true });
@@ -259,6 +259,13 @@ export function createRouteResolver(resolveStore: Readable<UnresolvedRoute | nul
 
     if (result.matched) {
       const {component, params, name} = result.matched;
+      
+      if (childResolveStore) {
+        childResolveStore.set({
+          path: result.remaining.length > 0 ? '/' + result.remaining.join('/') : '/',
+          segments: result.remaining
+        });
+      }
       
       component().then((module: any) => {
         set({

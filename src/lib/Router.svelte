@@ -1,6 +1,6 @@
 <script lang="ts">
   import {onMount, getContext, setContext} from 'svelte';
-  import {writable, type Writable} from 'svelte/store';
+  import {writable} from 'svelte/store';
   import {createRouteResolver, createErrorHandler, initRouter} from './router';
   import {resolvedRoute, erroneousRoute, currentRoute} from './store';
   import type {RouteDefinition, Routes, RouterContext} from './types';
@@ -16,12 +16,13 @@
   const unresolvedRoute = writable<{ path: string, segments: string[] } | null>(null);
   const routeError = writable<{ error: string, path: string } | null>(null);
   
-  const resolvedComponent = createRouteResolver(resolveStore, routes);
+  const resolvedComponent = createRouteResolver(resolveStore, routes, isRoot, unresolvedRoute);
   const fallbackComponent = createErrorHandler(errorStore, fallback);
 
   setContext('sly-router', {
-    resolve: unresolvedRoute,
-    error: routeError,
+    resolveStore: unresolvedRoute,
+    errorStore: routeError,
+    isRoot: false,
     parentRoute
   });
 
@@ -35,9 +36,10 @@
     }
   });
 
+
   onMount(() => {
     if (isRoot) {
-      const currentPath = initRouter(parentRoute, routes);
+      initRouter(parentRoute, routes);
     }
   });
 
