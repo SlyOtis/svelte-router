@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { routeParams } from '../lib';
   
   let { props } = $props();
   let params = props?.params || {};

@@ -1,5 +1,5 @@
 <script lang="ts">
-    import { navigate, routeParams } from "../lib";
+    import { navigate } from "../lib";
     
     export let props: any = null;
     
