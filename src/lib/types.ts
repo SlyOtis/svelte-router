@@ -10,11 +10,29 @@ export type RouteParams = {
 export type RouteComponent = () => Promise<any>;
 
 /**
+ * Represents a route guard function that determines if navigation should proceed
+ * @returns A promise resolving to either:
+ *          - null: Allow navigation to proceed
+ *          - string: Redirect to the returned path
+ */
+export type RouteGuard = () => Promise<string | null>;
+
+/**
  * Represents a named route with its associated component
  * @property name - The name of the route
  * @property component - The lazy-loaded component for this route
  */
-export type RouteData = { name: string; component: RouteComponent };
+export type RouteData = { name: string; component: RouteComponent, guard?: RouteGuard };
+
+/**
+ * Extended RouteData for internal router implementation
+ */
+export type RouteDataWithParent = RouteData & { parentRoute: string };
+
+/**
+ * Internal routes implementation type
+ */
+export type RoutesImpl = Record<string, RouteDataWithParent | string>;
 
 /**
  * Represents the possible definitions for a route
@@ -42,4 +60,51 @@ export type MatchedRoute = {
   name: string;
   /** The lazy-loaded component associated with the route */
   component: () => Promise<any>;
+};
+
+/**
+ * Represents the router context passed between nested routers
+ */
+export type RouterContext = {
+  resolveStore: import('svelte/store').Writable<{ path: string, segments: string[] } | null>;
+  errorStore: import('svelte/store').Writable<{ error: string, path: string } | null>;
+  isRoot: boolean;
+  parentRoute?: string;
+};
+
+/**
+ * Store types
+ */
+export type ResolvedRouteStore = {
+  path: string;
+  segments: string[];
+};
+
+export type ErroneousRouteStore = {
+  error: string;
+  unresolvedPath: string;
+} | null;
+
+export type CurrentRouteStore = {
+  path: string;
+  params: RouteParams;
+  parentPath: string;
+};
+
+/**
+ * Represents a resolved route component after loading
+ */
+export type ResolvedRouteComponent = {
+  component: any | null;
+  props: any | null;
+  name: string;
+  loading: boolean;
+};
+
+/**
+ * Represents an unresolved route that needs to be processed
+ */
+export type UnresolvedRoute = {
+  path: string;
+  segments: string[];
 };

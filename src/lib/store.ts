@@ -1,16 +1,15 @@
 import {writable} from "svelte/store";
-import type {Routes, RouteParams} from "./types";
+import type {ResolvedRouteStore, ErroneousRouteStore, CurrentRouteStore} from "./types";
 
-export const globalUnresolvedRoute = writable<{path: string, segments: string[]}>({
+export const resolvedRoute = writable<ResolvedRouteStore>({
     path: window.location.pathname,
     segments: window.location.pathname.split('/').filter(Boolean)
 });
 
-export const globalRegisteredRoutes = writable<Routes>({});
+export const erroneousRoute = writable<ErroneousRouteStore>(null);
 
-export const globalRouteError = writable<{error: string, unresolvedPath: string} | null>(null);
-
-export const currentRoute = writable<{path: string, params: RouteParams}>({
+export const currentRoute = writable<CurrentRouteStore>({
     path: window.location.pathname,
+    parentPath: window.location.pathname,
     params: {}
 });
