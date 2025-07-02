@@ -2,7 +2,7 @@
   import {onMount, getContext, setContext} from 'svelte';
   import {writable, type Writable} from 'svelte/store';
   import {resolveRoute, initRouter} from './router';
-  import {globalUnresolvedRoute, globalRegisteredRoutes, globalRouteError} from './store';
+  import {globalUnresolvedRoute, globalRegisteredRoutes, globalRouteError, currentRoute} from './store';
   import type {RouteDefinition, Routes} from './types';
 
   let {routes, fallback, children}: { routes: Routes, fallback: RouteDefinition, children: any } = $props()
@@ -43,6 +43,10 @@
       if (result.matched) {
         loading = true;
         const {component, params, name} = result.matched;
+        currentRoute.set({
+          path: unresolved.path,
+          params: params || {}
+        });
         component().then((module: any) => {
           RouteComp = module.default;
           routeProps = {params};
@@ -118,6 +122,10 @@
           if (result.matched) {
             loading = true;
             const {component, params, name} = result.matched;
+            currentRoute.set({
+              path: value.path,
+              params: params || {}
+            });
             component().then((module: any) => {
               RouteComp = module.default;
               routeProps = {params};
