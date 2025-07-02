@@ -2,7 +2,7 @@
 import Router from "./Router.svelte";
 
 /** Core router functions */
-import {initRouter, getRoutes, navigate} from "./router";
+import {initRouter, navigate} from "./router";
 
 /** Reactive stores for route information */
 import {
@@ -22,7 +22,6 @@ export type * from "./types";
 export {
     Router /** Main Router component */,
     initRouter /** Initialize the router */,
-    getRoutes /** Get configured routes */,
     navigate /** Programmatic navigation */,
     currentComponent /** Current route component */,
     queryParams /** Query parameters */,
