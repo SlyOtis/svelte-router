@@ -56,7 +56,10 @@
             segments: result.remaining
           });
         } else {
-          childUnresolvedRoute.set(null);
+          childUnresolvedRoute.set({
+            path: '/',
+            segments: []
+          });
         }
       } else if (fallback) {
         loading = true;
@@ -107,6 +110,39 @@
         }
       }
     });
+
+    // Process any existing unresolved route value immediately for child routers
+    let currentUnresolved;
+    const unsubscribeImmediate = unresolvedRouteStore.subscribe(value => {
+      currentUnresolved = value;
+    });
+    unsubscribeImmediate();
+    
+    if (parentRouterContext && currentUnresolved) {
+      const result = resolveRoute(currentUnresolved.segments, routes);
+      if (result.matched) {
+        loading = true;
+        const {component, params, name} = result.matched;
+        component().then((module: any) => {
+          RouteComp = module.default;
+          routeProps = {params};
+          routeName = name;
+          loading = false;
+        });
+        
+        if (result.remaining.length > 0) {
+          childUnresolvedRoute.set({
+            path: '/' + result.remaining.join('/'),
+            segments: result.remaining
+          });
+        } else {
+          childUnresolvedRoute.set({
+            path: '/',
+            segments: []
+          });
+        }
+      }
+    }
 
     return () => {
       unsubscribeUnresolved();
