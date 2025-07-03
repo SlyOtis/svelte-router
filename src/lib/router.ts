@@ -1,7 +1,7 @@
 import {match} from "path-to-regexp";
-import {writable, readable, derived, type Readable} from 'svelte/store';
-import type {MatchedRoute, RouteData, RouteParams, Routes, RoutesImpl, ResolvedRouteComponent, UnresolvedRoute, RouteDefinition} from "./types";
-import {resolvedRoute, currentRoute} from "./store";
+import {derived, type Readable} from 'svelte/store';
+import type {MatchedRoute, RouteParams, Routes, RoutesImpl, ResolvedRouteComponent, UnresolvedRoute, RouteDefinition} from "./types";
+import {resolvedRoute} from "./store";
 
 
 export class Config {

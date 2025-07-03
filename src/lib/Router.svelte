@@ -11,12 +11,10 @@
     resolveStore,
     errorStore,
     isRoot,
-    parentRoute,
-    previousComponent
+    parentRoute
   }: RouterContext = getContext('sly-router') || {
     resolveStore: resolvedRoute,
     errorStore: erroneousRoute,
-    previousComponent: writable(),
     isRoot: true
   };
 
@@ -30,8 +28,7 @@
     resolveStore: unresolvedRoute,
     errorStore: routeError,
     isRoot: false,
-    parentRoute,
-    previousComponent: writable()
+    parentRoute
   });
 
   $effect(() => {
@@ -59,30 +56,32 @@
   const activeProps = $derived($fallbackComponent.props || $resolvedComponent.props);
   const activeName = $derived($fallbackComponent.name || $resolvedComponent.name);
   const isLoading = $derived($resolvedComponent.loading || $fallbackComponent.loading);
-  const PrevComp = $previousComponent
+  let PrevComp = $state<any>(null);
 
-  let showPrevious = $state(false);
+  let debouncedLoading = $state(false);
   let timeout: number | null | any = null;
 
   $effect(() => {
     if (timeout) clearTimeout(timeout);
-
+    
     if (RouteComp && !isLoading) {
-      showPrevious = false;
-      if (previousComponent) $previousComponent = RouteComp;
-    } else if (isLoading && previousComponent && $previousComponent) {
-      showPrevious = true;
-      timeout = setTimeout(() => showPrevious = false, 1000);
+      debouncedLoading = isLoading;
+      PrevComp = RouteComp;
+      return
     }
+
+    timeout = setTimeout(() => {
+      debouncedLoading = isLoading;
+    }, 1000);
   });
 </script>
 
 {#key activeName}
-    {#if showPrevious && PrevComp}
-        <PrevComp props={activeProps}></PrevComp>
-    {:else if !isLoading && RouteComp}
+    {#if !isLoading && RouteComp}
         <RouteComp props={activeProps}></RouteComp>
-    {:else}
+    {:else if debouncedLoading && PrevComp}
+        <PrevComp props={activeProps}></PrevComp>
+    {:else if debouncedLoading}
         {@render children?.()}
     {/if}
 {/key}

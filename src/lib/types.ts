@@ -1,6 +1,5 @@
 import type {Writable} from "svelte/store";
 
-('svelte/store')
 /** Represents route parameters as key-value pairs */
 export type RouteParams = {
   [key: string]: string;
@@ -76,7 +75,6 @@ export type RouterContext = {
   errorStore: Writable<{ error: string, path: string } | null>;
   isRoot: boolean;
   parentRoute?: string;
-  previousComponent?: Writable<any>;
 };
 
 /**
