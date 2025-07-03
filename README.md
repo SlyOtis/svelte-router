@@ -135,19 +135,54 @@ Shop Router: matches '/products/:id' → loads ProductDetail, remaining: []
 '/legacy/:id': '/users/:id'       // Parameter-preserving redirect
 ```
 
-## Path Parameters
+### Route Guards
 
-Route parameters are automatically extracted and passed to components:
+Protect routes with async guard functions:
+
+```typescript
+'/admin': {
+  name: 'admin',
+  component: () => import('./routes/Admin.svelte'),
+  guard: async () => {
+    const isAuthenticated = await checkAuth();
+    if (!isAuthenticated) {
+      // Redirect with state
+      return {
+        path: '/login',
+        state: { message: 'Please login to access admin area' }
+      };
+    }
+    return null; // Allow access
+  }
+}
+```
+
+## Route Props
+
+All route components receive a standardized `route` prop containing route information. The examples use Svelte 5's rune syntax (`$props()`, `$derived`) for modern, reactive component development:
+
+```typescript
+interface RouteProps {
+  params?: RouteParams      // Route parameters from URL
+  error?: ErroneousRouteStore  // Error info for fallback components  
+  state?: any              // Navigation state data
+}
+```
+
+### Accessing Route Parameters
 
 ```svelte
 <!-- UserDetail.svelte -->
 <script lang="ts">
-  let { props } = $props();
-  let params = props?.params || {};
+  import type { RouteProps } from 'sly-svelte-router';
+  
+  let { route }: { route: RouteProps } = $props();
+  
+  // For /users/123, route.params.id === '123'
+  const userId = $derived(route.params?.id);
 </script>
 
-<h1>User: {params.id}</h1>
-<p>Category: {params.category}</p>
+<h1>User: {userId}</h1>
 ```
 
 **Supported Parameter Types:**
@@ -156,6 +191,43 @@ Route parameters are automatically extracted and passed to components:
 - `:path*` - Zero or more segments
 - `:path+` - One or more segments
 
+### Navigation State
+
+Access state passed during navigation or from guards:
+
+```svelte
+<script lang="ts">
+  import type { RouteProps } from 'sly-svelte-router';
+  
+  let { route }: { route: RouteProps } = $props();
+  
+  // Access state from guard redirects
+  const message = $derived(route.state?.message);
+</script>
+
+{#if message}
+  <div class="alert">{message}</div>
+{/if}
+```
+
+### Error Handling in Fallback Components
+
+Fallback components receive error information through the same interface:
+
+```svelte
+<!-- 404.svelte -->
+<script lang="ts">
+  import type { RouteProps } from 'sly-svelte-router';
+  
+  let { route }: { route: RouteProps } = $props();
+  
+  const errorPath = $derived(route.error?.path);
+</script>
+
+<h1>404 - Not Found</h1>
+<p>The path "{errorPath}" could not be found.</p>
+```
+
 ## Programmatic Navigation
 
 ```typescript
@@ -163,6 +235,9 @@ import { navigate } from 'sly-svelte-router';
 
 // Navigate to a new route
 navigate('/users/123');
+
+// Navigate with state
+navigate('/dashboard', { from: 'login', userId: 123 });
 
 // Works with nested routes
 navigate('/admin/users/456');
@@ -227,14 +302,17 @@ Fallbacks handle unmatched routes and can be defined at any router level:
 Full TypeScript support with strict typing:
 
 ```typescript
-import type { Routes, RouteParams, RouteDefinition } from 'sly-svelte-router';
+import type { Routes, RouteProps, RouteDefinition } from 'sly-svelte-router';
 
 const routes: Routes = {
   '/users/:id': () => import('./UserDetail.svelte')
 };
 
-// In your component
-let { props }: { props?: { params?: RouteParams } } = $props();
+// In your component (Svelte 5)
+let { route }: { route: RouteProps } = $props();
+
+// Type-safe access to params
+const userId = $derived(route.params?.id);
 ```
 
 ## Performance
@@ -263,8 +341,8 @@ let { props }: { props?: { params?: RouteParams } } = $props();
 - `fallback?: RouteDefinition` - Fallback component for unmatched routes
 - `children?` - Loading component (rendered during route transitions)
 
-### `navigate(path: string)`
-Programmatic navigation function.
+### `navigate(path: string, state?: any)`
+Programmatic navigation function with optional state.
 
 ### `initRouter()`
 Manual router initialization function. Use this instead of the Router component when you need to implement custom route resolution logic. This function sets up URL change listening and navigation event handling, but you'll need to implement your own route matching and component rendering.
@@ -272,8 +350,10 @@ Manual router initialization function. Use this instead of the Router component 
 ### Types
 - `Routes` - Route configuration object type
 - `RouteDefinition` - Union type for route definitions
+- `RouteProps` - Props interface for route components
 - `RouteParams` - Route parameter object type
 - `RouteComponent` - Lazy-loaded component type
+- `RouteGuard` - Guard function type for route protection
 
 ## License
 

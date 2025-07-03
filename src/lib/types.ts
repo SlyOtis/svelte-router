@@ -24,16 +24,19 @@ export type RouteGuard = () => Promise<string | null | undefined | { path: strin
  * Represents a named route with its associated component
  * @property name - The name of the route
  * @property component - The lazy-loaded component for this route
+ * @property guard - Optional guard function for route protection
  */
 export type RouteData = { name: string; component: RouteComponent, guard?: RouteGuard };
 
 /**
  * Extended RouteData for internal router implementation
+ * @property parentRoute - The parent route path for nested routing
  */
 export type RouteDataWithParent = RouteData & { parentRoute: string };
 
 /**
  * Internal routes implementation type
+ * Maps route patterns to RouteDataWithParent objects or redirect strings
  */
 export type RoutesImpl = Record<string, RouteDataWithParent | string>;
 
@@ -71,29 +74,60 @@ export type MatchedRoute = {
  * Represents the router context passed between nested routers
  */
 export type RouterContext = {
-  resolveStore: Writable<{ path: string, segments: string[] } | null>;
-  errorStore: Writable<{ error: string, path: string } | null>;
+  /** Store for tracking unresolved route data */
+  resolveStore: Writable<ResolvedRouteStore | null>;
+  /** Store for tracking routing errors */
+  errorStore: Writable<ErroneousRouteStore | null>;
+  /** Whether this is the root router instance */
   isRoot: boolean;
+  /** The parent route path for nested routing */
   parentRoute?: string;
 };
 
 /**
- * Store types
+ * Represents the current resolved route state
  */
 export type ResolvedRouteStore = {
+  /** The current route path */
   path: string;
+  /** Path segments split by '/' */
   segments: string[];
+  /** Optional state data passed with navigation */
   state?: any;
 };
 
+/**
+ * Props passed to route components
+ * All route components receive these props in a 'router' prop
+ */
+export interface RouteProps {
+  /** Route parameters extracted from the URL pattern */
+  params?: RouteParams
+  /** Error information if the route is rendered as a fallback */
+  error?: ErroneousRouteStore
+  /** State data passed during navigation or from guards */
+  state?: any
+}
+
+/**
+ * Represents an error state in routing
+ */
 export type ErroneousRouteStore = {
+  /** The error message */
   error: string;
-  unresolvedPath: string;
+  /** The path that caused the error */
+  path: string;
 } | null;
 
+/**
+ * Represents the current active route information
+ */
 export type CurrentRouteStore = {
+  /** The current route path */
   path: string;
+  /** Route parameters extracted from the URL */
   params: RouteParams;
+  /** The parent route path */
   parentPath: string;
 };
 
@@ -101,16 +135,12 @@ export type CurrentRouteStore = {
  * Represents a resolved route component after loading
  */
 export type ResolvedRouteComponent = {
+  /** The loaded component (null if not loaded or error) */
   component: any | null;
-  props: any | null;
+  /** Props to pass to the component, wrapped in a 'router' property */
+  props: { route: RouteProps } | null;
+  /** The route name or special identifier (__error, __not_found, etc.) */
   name: string;
+  /** Whether the component is currently loading */
   loading: boolean;
-};
-
-/**
- * Represents an unresolved route that needs to be processed
- */
-export type UnresolvedRoute = {
-  path: string;
-  segments: string[];
 };

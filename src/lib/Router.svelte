@@ -3,7 +3,7 @@
   import {writable} from 'svelte/store';
   import {createRouteResolver, createErrorHandler, initRouter} from './router';
   import {resolvedRoute, erroneousRoute, currentRoute} from './store';
-  import type {RouteDefinition, Routes, RouterContext} from './types';
+  import type {RouteDefinition, Routes, RouterContext, ResolvedRouteStore, ErroneousRouteStore} from './types';
 
   let {routes, fallback, children}: { routes: Routes, fallback: RouteDefinition, children: any } = $props()
 
@@ -18,8 +18,8 @@
     isRoot: true
   };
 
-  const unresolvedRoute = writable<{ path: string, segments: string[] } | null>(null);
-  const routeError = writable<{ error: string, path: string } | null>(null);
+  const unresolvedRoute = writable<ResolvedRouteStore | null>(null);
+  const routeError = writable<ErroneousRouteStore>(null);
 
   const resolvedComponent = createRouteResolver(resolveStore, routes, unresolvedRoute);
   const fallbackComponent = createErrorHandler(errorStore, fallback);
@@ -35,7 +35,7 @@
     if ($resolvedComponent.component && !$resolvedComponent.loading) {
       currentRoute.set({
         path: $resolveStore?.path || '',
-        params: $resolvedComponent.props?.params || {},
+        params: $resolvedComponent.props?.route?.params || {},
         parentPath: parentRoute || $resolveStore?.path || ''
       });
     }
@@ -54,34 +54,42 @@
 
   const RouteComp = $derived($fallbackComponent.component || $resolvedComponent.component);
   const activeProps = $derived($fallbackComponent.props || $resolvedComponent.props);
-  const activeName = $derived($fallbackComponent.name || $resolvedComponent.name);
-  const isLoading = $derived($resolvedComponent.loading || $fallbackComponent.loading);
+  const isCompLoading = $derived($resolvedComponent.loading || $fallbackComponent.loading);
   let PrevComp = $state<any>(null);
 
-  let debouncedLoading = $state(false);
+  let debouncedLoading = $state(true);
+  let showLoading = $state(true);
   let timeout: number | null | any = null;
 
   $effect(() => {
     if (timeout) clearTimeout(timeout);
+
+    if (isCompLoading && !PrevComp) {
+      showLoading = true
+      debouncedLoading = true
+      return
+    }
     
-    if (RouteComp && !isLoading) {
-      debouncedLoading = isLoading;
+    if (RouteComp && !isCompLoading) {
       PrevComp = RouteComp;
+      debouncedLoading = false;
+      showLoading = false
       return
     }
 
     timeout = setTimeout(() => {
-      debouncedLoading = isLoading;
+      debouncedLoading = isCompLoading;
+      showLoading = isCompLoading
     }, 1000);
   });
 </script>
 
-{#key activeName}
-    {#if !isLoading && RouteComp}
-        <RouteComp props={activeProps}></RouteComp>
-    {:else if debouncedLoading && PrevComp}
-        <PrevComp props={activeProps}></PrevComp>
-    {:else if debouncedLoading}
-        {@render children?.()}
+{#if debouncedLoading}
+    {#if showLoading && children}
+        {@render children()}
+    {:else if PrevComp}
+        <PrevComp {activeProps}></PrevComp>
     {/if}
-{/key}
+{:else }
+    <RouteComp {activeProps}></RouteComp>
+{/if}

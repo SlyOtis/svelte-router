@@ -1,6 +1,14 @@
 import {match} from "path-to-regexp";
-import {derived, type Readable} from 'svelte/store';
-import type {MatchedRoute, RouteParams, Routes, RoutesImpl, ResolvedRouteComponent, UnresolvedRoute, RouteDefinition} from "./types";
+import {derived, type Readable, type Writable} from 'svelte/store';
+import type {
+  MatchedRoute,
+  RouteParams,
+  Routes,
+  RoutesImpl,
+  ResolvedRouteComponent,
+  RouteDefinition,
+  ErroneousRouteStore, ResolvedRouteStore
+} from "./types";
 import {resolvedRoute} from "./store";
 
 
@@ -229,7 +237,7 @@ export function initRouter(parentRoute: string | undefined, routes: Routes): voi
   });
 }
 
-export function createRouteResolver(resolveStore: Readable<UnresolvedRoute | null>, routes: Routes, childResolveStore?: import('svelte/store').Writable<UnresolvedRoute | null>): Readable<ResolvedRouteComponent> {
+export function createRouteResolver(resolveStore: Readable<ResolvedRouteStore | null>, routes: Routes, unresolvedStore?: Writable<ResolvedRouteStore | null>): Readable<ResolvedRouteComponent> {
   return derived(resolveStore, (store, set) => {
     set({ component: null, props: null, name: '', loading: true });
 
@@ -263,17 +271,21 @@ export function createRouteResolver(resolveStore: Readable<UnresolvedRoute | nul
             return;
           }
 
-          if (childResolveStore) {
-            childResolveStore.set({
-              path: result.remaining.length > 0 ? '/' + result.remaining.join('/') : '/',
-              segments: result.remaining
-            });
-          }
+          unresolvedStore?.set({
+            path: result.remaining.length > 0 ? '/' + result.remaining.join('/') : '/',
+            segments: result.remaining,
+            state: store.state
+          });
 
           const module = await component();
           set({
             component: module.default,
-            props: {params},
+            props: {
+              route: {
+                params,
+                state: store.state,
+              }
+            },
             name,
             loading: false
           });
@@ -297,7 +309,7 @@ export function createRouteResolver(resolveStore: Readable<UnresolvedRoute | nul
   }, { component: null, props: null, name: '', loading: true } as ResolvedRouteComponent);
 }
 
-export function createErrorHandler(errorStore: Readable<{error: string, path: string} | null>, fallback?: RouteDefinition): Readable<ResolvedRouteComponent> {
+export function createErrorHandler(errorStore: Readable<ErroneousRouteStore>, fallback?: RouteDefinition): Readable<ResolvedRouteComponent> {
   return derived(errorStore, (store, set) => {
     if (!store || !fallback) {
       set({ component: null, props: null, name: '', loading: false } as ResolvedRouteComponent);
@@ -310,7 +322,11 @@ export function createErrorHandler(errorStore: Readable<{error: string, path: st
       fallback().then((module: any) => {
         set({
           component: module.default,
-          props: null,
+          props: {
+            route: {
+              error: store,
+            }
+          },
           name: '__fallback',
           loading: false
         });
@@ -321,7 +337,11 @@ export function createErrorHandler(errorStore: Readable<{error: string, path: st
       fallback.component().then((module: any) => {
         set({
           component: module.default,
-          props: null,
+          props: {
+            route: {
+              error: store,
+            }
+          },
           name: '__fallback',
           loading: false
         });
