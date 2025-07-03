@@ -1,6 +1,7 @@
 <script lang="ts">
   import Router from './lib/Router.svelte';
   import type { Routes } from './lib';
+  import { resolvedRoute } from './lib/store';
 
   const routes: Routes = {
     '/': () => import('./routes/Home.svelte'),
@@ -8,7 +9,20 @@
     '/contact': () => import('./routes/Contact.svelte'),
     '/users': () => import('./routes/Users.svelte'),
     '/users/:id': () => import('./routes/UserDetail.svelte'),
-    '/admin': () => import('./routes/Admin.svelte'),
+    '/admin': {
+      name: 'admin',
+      component: () => import('./routes/Admin.svelte'),
+      guard: async () => {
+        const isAuthenticated = Math.random() > 0.5;
+        if (!isAuthenticated) {
+          return {
+            path: '/',
+            state: { message: 'Access denied! Please login first.' }
+          };
+        }
+        return null;
+      }
+    },
     '/shop': () => import('./routes/Shop.svelte'),
     '/legacy': '/about',
     '/old-contact': '/contact',

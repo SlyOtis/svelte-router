@@ -1,12 +1,13 @@
 import {match} from "path-to-regexp";
 import {writable, readable, derived, type Readable} from 'svelte/store';
 import type {MatchedRoute, RouteData, RouteParams, Routes, RoutesImpl, ResolvedRouteComponent, UnresolvedRoute, RouteDefinition} from "./types";
-import {resolvedRoute} from "./store";
+import {resolvedRoute, currentRoute} from "./store";
 
 
 export class Config {
   static routes: RoutesImpl
   static currentPath: string
+  static isInitialized: boolean = false
 }
 
 function isValidRoutePattern(pattern: string): boolean {
@@ -175,6 +176,7 @@ export function resolveRoute(segments: string[], routes: Routes): {
               params: result.params as RouteParams,
               name: routeData.name,
               component: routeData.component,
+              guard: routeData.guard,
             },
             remaining
           };
@@ -189,23 +191,24 @@ export function resolveRoute(segments: string[], routes: Routes): {
 }
 
 
-export function initRouter(parentRoute: string | undefined, routes: Routes): string {
-  if (typeof window === 'undefined') return '';
+export function initRouter(parentRoute: string | undefined, routes: Routes): void {
+  if (typeof window === 'undefined') return;
 
   validateRoutes(routes);
   const processedRoutes = convertRoutesToRouteData(routes, parentRoute);
   appendToConfigRoutes(processedRoutes, parentRoute);
 
-  const currentPath = window.location.pathname;
-  resolvedRoute.set({
-    path: currentPath,
-    segments: currentPath.split('/').filter(Boolean)
-  });
+  if (Config.isInitialized) {
+    return;
+  }
 
+  Config.isInitialized = true;
+  
   window.addEventListener("popstate", (event) => {
     resolvedRoute.set({
       path: window.location.pathname,
-      segments: window.location.pathname.split('/').filter(Boolean)
+      segments: window.location.pathname.split('/').filter(Boolean),
+      state: event.state
     });
   });
 
@@ -224,64 +227,65 @@ export function initRouter(parentRoute: string | undefined, routes: Routes): str
       history.pushState(null, "", target.href);
     }
   });
-
-  const originalPushState = history.pushState;
-  history.pushState = function () {
-    originalPushState.apply(this, arguments as any);
-    const url = new URL(arguments[2] as string, window.location.origin);
-    resolvedRoute.set({
-      path: url.pathname,
-      segments: url.pathname.split('/').filter(Boolean)
-    });
-  };
-
-  const originalReplaceState = history.replaceState;
-  history.replaceState = function () {
-    originalReplaceState.apply(this, arguments as any);
-    const url = new URL(arguments[2] as string, window.location.origin);
-    resolvedRoute.set({
-      path: url.pathname,
-      segments: url.pathname.split('/').filter(Boolean)
-    });
-  };
-  
-  return currentPath;
 }
 
-export function createRouteResolver(resolveStore: Readable<UnresolvedRoute | null>, routes: Routes, isRoot: boolean = true, childResolveStore?: import('svelte/store').Writable<UnresolvedRoute | null>): Readable<ResolvedRouteComponent> {
+export function createRouteResolver(resolveStore: Readable<UnresolvedRoute | null>, routes: Routes, childResolveStore?: import('svelte/store').Writable<UnresolvedRoute | null>): Readable<ResolvedRouteComponent> {
   return derived(resolveStore, (store, set) => {
+    set({ component: null, props: null, name: '', loading: true });
+
     if (!store) {
-      set({ component: null, props: null, name: '', loading: true });
       return;
     }
     
     const result = resolveRoute(store.segments, routes);
 
     if (result.matched) {
-      const {component, params, name} = result.matched;
-      
-      if (childResolveStore) {
-        childResolveStore.set({
-          path: result.remaining.length > 0 ? '/' + result.remaining.join('/') : '/',
-          segments: result.remaining
-        });
-      }
-      
-      component().then((module: any) => {
-        set({
-          component: module.default,
-          props: {params},
-          name,
-          loading: false
-        });
-      }).catch(() => {
-        set({
-          component: null,
-          props: null,
-          name: '__error',
-          loading: false
-        });
-      });
+      const {component, params, name, guard} = result.matched;
+
+      (async () => {
+        try {
+          const guardResult = guard ? await guard() : null;
+          if (guardResult) {
+            if (typeof guardResult === 'string') {
+              history.replaceState(null, "", guardResult);
+              resolvedRoute.set({
+                path: guardResult,
+                segments: guardResult.split('/').filter(Boolean)
+              });
+            } else if (guardResult && typeof guardResult === 'object' && 'path' in guardResult) {
+              history.replaceState(guardResult.state || null, "", guardResult.path);
+              resolvedRoute.set({
+                path: guardResult.path,
+                segments: guardResult.path.split('/').filter(Boolean),
+                state: guardResult.state
+              });
+            }
+            return;
+          }
+
+          if (childResolveStore) {
+            childResolveStore.set({
+              path: result.remaining.length > 0 ? '/' + result.remaining.join('/') : '/',
+              segments: result.remaining
+            });
+          }
+
+          const module = await component();
+          set({
+            component: module.default,
+            props: {params},
+            name,
+            loading: false
+          });
+        } catch {
+          set({
+            component: null,
+            props: null,
+            name: '__error',
+            loading: false
+          });
+        }
+      })();
     } else {
       set({
         component: null,
@@ -326,12 +330,13 @@ export function createErrorHandler(errorStore: Readable<{error: string, path: st
   }, { component: null, props: null, name: '', loading: false } as ResolvedRouteComponent);
 }
 
-export function navigate(path: string) {
+export function navigate(path: string, state?: any) {
   const url = new URL(path, window.location.origin);
   Config.currentPath = url.pathname;
   resolvedRoute.set({
     path: url.pathname,
-    segments: url.pathname.split('/').filter(Boolean)
+    segments: url.pathname.split('/').filter(Boolean),
+    state
   });
-  history.pushState(null, "", path);
+  history.pushState(state || null, "", path);
 }

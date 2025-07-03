@@ -1,3 +1,6 @@
+import type {Writable} from "svelte/store";
+
+('svelte/store')
 /** Represents route parameters as key-value pairs */
 export type RouteParams = {
   [key: string]: string;
@@ -12,10 +15,11 @@ export type RouteComponent = () => Promise<any>;
 /**
  * Represents a route guard function that determines if navigation should proceed
  * @returns A promise resolving to either:
- *          - null: Allow navigation to proceed
+ *          - null/undefined: Allow navigation to proceed
  *          - string: Redirect to the returned path
+ *          - object: Redirect with path and state { path: string, state?: any }
  */
-export type RouteGuard = () => Promise<string | null>;
+export type RouteGuard = () => Promise<string | null | undefined | { path: string, state?: any }>;
 
 /**
  * Represents a named route with its associated component
@@ -60,16 +64,19 @@ export type MatchedRoute = {
   name: string;
   /** The lazy-loaded component associated with the route */
   component: () => Promise<any>;
+  /** Optional guard function for route protection */
+  guard?: RouteGuard;
 };
 
 /**
  * Represents the router context passed between nested routers
  */
 export type RouterContext = {
-  resolveStore: import('svelte/store').Writable<{ path: string, segments: string[] } | null>;
-  errorStore: import('svelte/store').Writable<{ error: string, path: string } | null>;
+  resolveStore: Writable<{ path: string, segments: string[] } | null>;
+  errorStore: Writable<{ error: string, path: string } | null>;
   isRoot: boolean;
   parentRoute?: string;
+  previousComponent?: Writable<any>;
 };
 
 /**
@@ -78,6 +85,7 @@ export type RouterContext = {
 export type ResolvedRouteStore = {
   path: string;
   segments: string[];
+  state?: any;
 };
 
 export type ErroneousRouteStore = {
