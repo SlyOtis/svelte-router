@@ -88,8 +88,8 @@
     {#if showLoading && children}
         {@render children()}
     {:else if PrevComp}
-        <PrevComp {activeProps}></PrevComp>
+        <PrevComp {...activeProps}></PrevComp>
     {/if}
 {:else }
-    <RouteComp {activeProps}></RouteComp>
+    <RouteComp {...activeProps}></RouteComp>
 {/if}
