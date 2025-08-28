@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Router Test</title>
+    <style>
+        body {
+            font-family: monospace;
+            padding: 20px;
+            background: #1a1a1a;
+            color: #0f0;
+        }
+        iframe {
+            width: 100%;
+            height: 600px;
+            border: 2px solid #0f0;
+            margin: 20px 0;
+        }
+        .test-controls {
+            background: #2a2a2a;
+            padding: 15px;
+            border: 1px solid #0f0;
+            margin-bottom: 20px;
+        }
+        button {
+            background: #0f0;
+            color: #000;
+            border: none;
+            padding: 8px 16px;
+            margin: 5px;
+            cursor: pointer;
+            font-family: monospace;
+            font-weight: bold;
+        }
+        button:hover {
+            background: #0a0;
+        }
+        .log {
+            background: #000;
+            padding: 15px;
+            height: 300px;
+            overflow-y: scroll;
+            border: 1px solid #0f0;
+            white-space: pre-wrap;
+        }
+        .log-entry {
+            padding: 2px 0;
+        }
+        .mount { color: #0f0; }
+        .destroy { color: #f00; }
+        .navigate { color: #ff0; }
+        .preserved { color: #0ff; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>🧪 Router Component Preservation Test</h1>
+    
+    <div class="test-controls">
+        <h2>Test Scenario: Navigate between nested routes</h2>
+        <p>Watch the console logs to see if Admin Layout is preserved when navigating between child routes.</p>
+        
+        <button onclick="navigateTo('/')">Home</button>
+        <button onclick="navigateTo('/admin')">Admin Dashboard</button>
+        <button onclick="navigateTo('/admin/settings')">Admin Settings</button>
+        <button onclick="navigateTo('/admin/profile')">Admin Profile</button>
+        <button onclick="navigateTo('/admin/users')">Admin Users</button>
+        <button onclick="navigateTo('/shop')">Shop</button>
+        <button onclick="navigateTo('/shop/products')">Shop Products</button>
+        <button onclick="clearLog()">Clear Log</button>
+    </div>
+    
+    <iframe id="testFrame" src="http://localhost:5173"></iframe>
+    
+    <div class="log" id="logContainer">
+        <div>Console output will appear here...</div>
+    </div>
+    
+    <script>
+        const iframe = document.getElementById('testFrame');
+        const logContainer = document.getElementById('logContainer');
+        let lastAdminInstance = null;
+        let lastShopInstance = null;
+        
+        function navigateTo(path) {
+            const entry = document.createElement('div');
+            entry.className = 'log-entry navigate';
+            entry.textContent = `>>> NAVIGATING TO: ${path}`;
+            logContainer.appendChild(entry);
+            
+            iframe.contentWindow.location.href = `http://localhost:5173${path}`;
+            
+            setTimeout(() => checkPreservation(), 500);
+        }
+        
+        function clearLog() {
+            logContainer.innerHTML = '<div>Console output cleared...</div>';
+            lastAdminInstance = null;
+            lastShopInstance = null;
+        }
+        
+        function checkPreservation() {
+            try {
+                const iframeConsole = iframe.contentWindow.console;
+                const originalLog = iframeConsole.log;
+                
+                iframe.contentWindow.console.log = function(...args) {
+                    originalLog.apply(iframeConsole, args);
+                    
+                    const message = args.join(' ');
+                    const entry = document.createElement('div');
+                    entry.className = 'log-entry';
+                    
+                    if (message.includes('MOUNTED')) {
+                        entry.className += ' mount';
+                        
+                        const match = message.match(/\[Admin Layout ([a-z0-9]+)\]/);
+                        if (match) {
+                            if (lastAdminInstance && lastAdminInstance === match[1]) {
+                                const preserved = document.createElement('div');
+                                preserved.className = 'log-entry preserved';
+                                preserved.textContent = '✓ ADMIN LAYOUT PRESERVED! Instance: ' + match[1];
+                                logContainer.appendChild(preserved);
+                            } else {
+                                lastAdminInstance = match[1];
+                            }
+                        }
+                    } else if (message.includes('DESTROYED')) {
+                        entry.className += ' destroy';
+                    }
+                    
+                    entry.textContent = new Date().toLocaleTimeString() + ' | ' + message;
+                    logContainer.appendChild(entry);
+                    logContainer.scrollTop = logContainer.scrollHeight;
+                };
+            } catch(e) {
+                console.error('Could not hook iframe console:', e);
+            }
+        }
+        
+        iframe.onload = function() {
+            setTimeout(() => {
+                checkPreservation();
+                const entry = document.createElement('div');
+                entry.className = 'log-entry';
+                entry.textContent = '=== Page loaded ===';
+                logContainer.appendChild(entry);
+            }, 100);
+        };
+    </script>
+</body>
+</html>

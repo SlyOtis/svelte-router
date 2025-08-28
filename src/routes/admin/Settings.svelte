@@ -1,6 +1,24 @@
+<script>
+  import { onMount, onDestroy } from 'svelte';
+  
+  const instanceId = Math.random().toString(36).substr(2, 9);
+  
+  onMount(() => {
+    console.log(`[Settings ${instanceId}] Component MOUNTED`);
+    return () => {
+      console.log(`[Settings ${instanceId}] Cleanup from onMount`);
+    };
+  });
+  
+  onDestroy(() => {
+    console.log(`[Settings ${instanceId}] Component DESTROYED`);
+  });
+</script>
+
 <div class="admin-page">
   <h2>⚙️ Admin Settings</h2>
   <p>Configure system settings</p>
+  <p style="font-family: monospace; color: #666;">Instance ID: {instanceId}</p>
   
   <div class="settings-sections">
     <div class="setting-section">

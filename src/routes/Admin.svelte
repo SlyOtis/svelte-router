@@ -1,6 +1,20 @@
 <script lang="ts">
   import Router from "../lib/Router.svelte";
   import type { Routes } from "../lib";
+  import { onMount, onDestroy } from 'svelte';
+  
+  const instanceId = Math.random().toString(36).substr(2, 9);
+  
+  onMount(() => {
+    console.log(`[Admin Layout ${instanceId}] Component MOUNTED`);
+    return () => {
+      console.log(`[Admin Layout ${instanceId}] Cleanup from onMount`);
+    };
+  });
+  
+  onDestroy(() => {
+    console.log(`[Admin Layout ${instanceId}] Component DESTROYED`);
+  });
   
   const routes: Routes = {
     '/': () => import('./admin/Dashboard.svelte'),
@@ -16,6 +30,7 @@
   <div class="admin-header">
     <h1>Admin Panel</h1>
     <p>Nested routing demonstration</p>
+    <p style="font-size: 0.8rem; opacity: 0.7;">Admin Instance: {instanceId}</p>
   </div>
   
   <div class="admin-nav">

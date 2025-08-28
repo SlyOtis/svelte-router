@@ -1,6 +1,20 @@
 <script lang="ts">
   import Router from "../lib/Router.svelte";
   import type { Routes } from "../lib";
+  import { onMount, onDestroy } from 'svelte';
+  
+  const instanceId = Math.random().toString(36).substr(2, 9);
+  
+  onMount(() => {
+    console.log(`[Shop Layout ${instanceId}] Component MOUNTED`);
+    return () => {
+      console.log(`[Shop Layout ${instanceId}] Cleanup from onMount`);
+    };
+  });
+  
+  onDestroy(() => {
+    console.log(`[Shop Layout ${instanceId}] Component DESTROYED`);
+  });
   
   const routes: Routes = {
     '/': () => import('./shop/Home.svelte'),
@@ -16,6 +30,7 @@
   <div class="shop-header">
     <h1>Shop</h1>
     <p>E-commerce nested routing demonstration</p>
+    <p style="font-size: 0.8rem; opacity: 0.7;">Shop Instance: {instanceId}</p>
   </div>
   
   <div class="shop-nav">

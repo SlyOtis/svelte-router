@@ -52,10 +52,19 @@
     }
   });
 
-  const RouteComp = $derived($fallbackComponent.component || $resolvedComponent.component);
   const activeProps = $derived($fallbackComponent.props || $resolvedComponent.props);
   const isCompLoading = $derived($resolvedComponent.loading || $fallbackComponent.loading);
-  let PrevComp = $state<any>(null);
+
+  let StableComp = $state<any>(null);
+  let currentComponentConstructor = $state<any>(null);
+
+  $effect(() => {
+    const newComp = $fallbackComponent.component || $resolvedComponent.component;
+    if (newComp && newComp !== currentComponentConstructor) {
+      currentComponentConstructor = newComp;
+      StableComp = newComp;
+    }
+  });
 
   let debouncedLoading = $state(true);
   let showLoading = $state(true);
@@ -64,14 +73,13 @@
   $effect(() => {
     if (timeout) clearTimeout(timeout);
 
-    if (isCompLoading && !PrevComp) {
+    if (isCompLoading && !StableComp) {
       showLoading = true
       debouncedLoading = true
       return
     }
     
-    if (RouteComp && !isCompLoading) {
-      PrevComp = RouteComp;
+    if (StableComp && !isCompLoading) {
       debouncedLoading = false;
       showLoading = false
       return
@@ -87,9 +95,11 @@
 {#if debouncedLoading}
     {#if showLoading && children}
         {@render children()}
-    {:else if PrevComp}
-        <PrevComp {...activeProps}></PrevComp>
+    {:else if StableComp}
+        <StableComp {...activeProps}></StableComp>
     {/if}
-{:else }
-    <RouteComp {...activeProps}></RouteComp>
+{:else if StableComp}
+    {#key currentComponentConstructor}
+        <StableComp {...activeProps}></StableComp>
+    {/key}
 {/if}

@@ -1,7 +1,25 @@
+<script>
+  import { onMount, onDestroy } from 'svelte';
+  
+  const instanceId = Math.random().toString(36).substr(2, 9);
+  
+  onMount(() => {
+    console.log(`[Dashboard ${instanceId}] Component MOUNTED`);
+    return () => {
+      console.log(`[Dashboard ${instanceId}] Cleanup from onMount`);
+    };
+  });
+  
+  onDestroy(() => {
+    console.log(`[Dashboard ${instanceId}] Component DESTROYED`);
+  });
+</script>
+
 <div class="admin-page">
   <h2>📊 Admin Dashboard</h2>
   <p>Welcome to the admin dashboard!</p>
   <p>This demonstrates nested routing within the admin section.</p>
+  <p style="font-family: monospace; color: #666;">Instance ID: {instanceId}</p>
   
   <div class="dashboard-grid">
     <div class="card">
