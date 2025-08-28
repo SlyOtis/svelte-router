@@ -13,7 +13,7 @@
       name: 'admin',
       component: () => import('./routes/Admin.svelte'),
       guard: async () => {
-        const isAuthenticated = Math.random() > 0.5;
+        const isAuthenticated = true; // Always allow for testing
         if (!isAuthenticated) {
           return {
             path: '/',

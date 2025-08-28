@@ -238,18 +238,44 @@ export function initRouter(parentRoute: string | undefined, routes: Routes): voi
 }
 
 export function createRouteResolver(resolveStore: Readable<ResolvedRouteStore | null>, routes: Routes, unresolvedStore?: Writable<ResolvedRouteStore | null>): Readable<ResolvedRouteComponent> {
+  let cachedName: string | null = null;
+  let cachedComponent: any = null;
+  let cachedLoader: (() => Promise<any>) | null = null;
+  
   return derived(resolveStore, (store, set) => {
-    set({ component: null, props: null, name: '', loading: true });
-
     if (!store) {
+      set({ component: null, props: null, name: '', loading: false });
       return;
     }
     
     const result = resolveRoute(store.segments, routes);
-
+    
     if (result.matched) {
       const {component, params, name, guard} = result.matched;
-
+      
+      if (cachedName === name && cachedLoader === component && cachedComponent) {
+        unresolvedStore?.set({
+          path: result.remaining.length > 0 ? '/' + result.remaining.join('/') : '/',
+          segments: result.remaining,
+          state: store.state
+        });
+        
+        set({
+          component: cachedComponent,
+          props: {
+            route: {
+              params,
+              state: store.state,
+            }
+          },
+          name,
+          loading: false
+        });
+        return;
+      }
+      
+      set({ component: null, props: null, name: '', loading: true });
+      
       (async () => {
         try {
           const guardResult = guard ? await guard() : null;
@@ -278,6 +304,10 @@ export function createRouteResolver(resolveStore: Readable<ResolvedRouteStore | 
           });
 
           const module = await component();
+          cachedName = name;
+          cachedComponent = module.default;
+          cachedLoader = component;
+          
           set({
             component: module.default,
             props: {
@@ -290,6 +320,9 @@ export function createRouteResolver(resolveStore: Readable<ResolvedRouteStore | 
             loading: false
           });
         } catch {
+          cachedName = null;
+          cachedComponent = null;
+          cachedLoader = null;
           set({
             component: null,
             props: null,
@@ -299,6 +332,9 @@ export function createRouteResolver(resolveStore: Readable<ResolvedRouteStore | 
         }
       })();
     } else {
+      cachedName = null;
+      cachedComponent = null;
+      cachedLoader = null;
       set({
         component: null,
         props: null,
