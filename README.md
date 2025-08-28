@@ -315,25 +315,6 @@ let { route }: { route: RouteProps } = $props();
 const userId = $derived(route.params?.id);
 ```
 
-## Performance
-
-- **Lazy Loading**: Components loaded on-demand
-- **Code Splitting**: Automatic bundle splitting per route
-- **Efficient Matching**: O(log n) route resolution
-- **Context Sharing**: Minimal overhead for nested routers
-
-## Migration Guide
-
-### From Traditional Routers
-- Replace single route table with nested Router components
-- Move route-specific layouts into route components
-- Use fallback props instead of catch-all routes
-
-### From Hash-based Routers  
-- Remove hash-based route definitions
-- Use standard path-based routes
-- Redirects handle legacy hash URLs if needed
-
 ## API Reference
 
 ### `Router` Component
