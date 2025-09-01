@@ -11,6 +11,58 @@ import type {
 } from "./types";
 import {resolvedRoute} from "./store";
 
+function setResolvedRoute(path: string, state?: any): void {
+  resolvedRoute.set({
+    path,
+    segments: path.split('/').filter(Boolean),
+    state
+  });
+}
+
+function setUnresolvedStore(store: Writable<ResolvedRouteStore | null> | undefined, remaining: string[], state?: any): void {
+  store?.set({
+    path: remaining.length > 0 ? '/' + remaining.join('/') : '/',
+    segments: remaining,
+    state
+  });
+}
+
+function createMatchedRoute(params: RouteParams, name: string, component: any, guard?: any): MatchedRoute {
+  return {
+    params,
+    name,
+    component,
+    guard
+  };
+}
+
+async function loadComponent(component: () => Promise<any>, params: RouteParams, state: any, name: string, hasRemaining: boolean, set: any, cachedName: string | null, cachedComponent: any): Promise<{name: string, component: any}> {
+  try {
+    const module = await component();
+    set({
+      component: module.default,
+      props: {
+        route: {
+          params,
+          state,
+        }
+      },
+      name,
+      loading: false,
+      hasRemaining
+    });
+    return {name, component: module.default};
+  } catch {
+    set({
+      component: null,
+      props: null,
+      name: '__error',
+      loading: false,
+      hasRemaining: false
+    });
+    return {name: '', component: null};
+  }
+}
 
 export class Config {
   static routes: RoutesImpl
@@ -104,20 +156,12 @@ export function resolveRoute(segments: string[], routes: Routes): {
         return resolveRoute(redirectSegments, routes);
       } else if (typeof routeData === 'function') {
         return {
-          matched: {
-            params: {},
-            name: '/',
-            component: routeData,
-          },
+          matched: createMatchedRoute({}, '/', routeData),
           remaining: []
         };
       } else if ("name" in routeData && "component" in routeData) {
         return {
-          matched: {
-            params: {},
-            name: routeData.name,
-            component: routeData.component,
-          },
+          matched: createMatchedRoute({}, routeData.name, routeData.component, routeData.guard),
           remaining: []
         };
       }
@@ -171,21 +215,12 @@ export function resolveRoute(segments: string[], routes: Routes): {
           return resolveRoute([...redirectSegments, ...remaining], routes);
         } else if (typeof routeData === 'function') {
           return {
-            matched: {
-              params: result.params as RouteParams,
-              name: routePath,
-              component: routeData,
-            },
+            matched: createMatchedRoute(result.params as RouteParams, routePath, routeData),
             remaining
           };
         } else if ("name" in routeData && "component" in routeData) {
           return {
-            matched: {
-              params: result.params as RouteParams,
-              name: routeData.name,
-              component: routeData.component,
-              guard: routeData.guard,
-            },
+            matched: createMatchedRoute(result.params as RouteParams, routeData.name, routeData.component, routeData.guard),
             remaining
           };
         }
@@ -213,26 +248,20 @@ export function initRouter(parentRoute: string | undefined, routes: Routes): voi
   Config.isInitialized = true;
   
   window.addEventListener("popstate", (event) => {
-    resolvedRoute.set({
-      path: window.location.pathname,
-      segments: window.location.pathname.split('/').filter(Boolean),
-      state: event.state
-    });
+    setResolvedRoute(window.location.pathname, event.state);
   });
 
   document.body.addEventListener("click", (e) => {
-    const target = e.target as HTMLAnchorElement;
+    const anchor = (e.target as HTMLElement).closest('a');
     if (
-      target.tagName === "A" &&
-      target.href.startsWith(window.location.origin)
+      anchor &&
+      anchor.href &&
+      anchor.href.startsWith(window.location.origin)
     ) {
       e.preventDefault();
-      const url = new URL(target.href);
-      resolvedRoute.set({
-        path: url.pathname,
-        segments: url.pathname.split('/').filter(Boolean)
-      });
-      history.pushState(null, "", target.href);
+      const url = new URL(anchor.href);
+      setResolvedRoute(url.pathname);
+      history.pushState(null, "", anchor.href);
     }
   });
 }
@@ -240,11 +269,10 @@ export function initRouter(parentRoute: string | undefined, routes: Routes): voi
 export function createRouteResolver(resolveStore: Readable<ResolvedRouteStore | null>, routes: Routes, unresolvedStore?: Writable<ResolvedRouteStore | null>): Readable<ResolvedRouteComponent> {
   let cachedName: string | null = null;
   let cachedComponent: any = null;
-  let cachedLoader: (() => Promise<any>) | null = null;
   
   return derived(resolveStore, (store, set) => {
     if (!store) {
-      set({ component: null, props: null, name: '', loading: false });
+      set({ component: null, props: null, name: '', loading: false, hasRemaining: false });
       return;
     }
     
@@ -253,12 +281,65 @@ export function createRouteResolver(resolveStore: Readable<ResolvedRouteStore | 
     if (result.matched) {
       const {component, params, name, guard} = result.matched;
       
-      if (cachedName === name && cachedLoader === component && cachedComponent) {
-        unresolvedStore?.set({
-          path: result.remaining.length > 0 ? '/' + result.remaining.join('/') : '/',
-          segments: result.remaining,
-          state: store.state
-        });
+      const hasCachedComponent = cachedName === name && cachedComponent;
+      
+      if (guard) {
+        (async () => {
+          try {
+            const guardResult = await guard();
+            
+            if (guardResult) {
+              cachedName = null;
+              cachedComponent = null;
+              
+              if (typeof guardResult === 'string') {
+                history.replaceState(null, "", guardResult);
+                setResolvedRoute(guardResult);
+              } else if (guardResult && typeof guardResult === 'object' && 'path' in guardResult) {
+                history.replaceState(guardResult.state || null, "", guardResult.path);
+                setResolvedRoute(guardResult.path, guardResult.state);
+              }
+              return;
+            }
+            
+            if (hasCachedComponent) {
+              setUnresolvedStore(unresolvedStore, result.remaining, store.state);
+              
+              set({
+                component: cachedComponent,
+                props: {
+                  route: {
+                    params,
+                    state: store.state,
+                  }
+                },
+                name,
+                loading: false,
+                hasRemaining: result.remaining.length > 0
+              });
+            } else {
+              set({ component: null, props: null, name: '', loading: true, hasRemaining: result.remaining.length > 0 });
+              
+              setUnresolvedStore(unresolvedStore, result.remaining, store.state);
+              
+              const loaded = await loadComponent(component, params, store.state, name, result.remaining.length > 0, set, cachedName, cachedComponent);
+              cachedName = loaded.name;
+              cachedComponent = loaded.component;
+            }
+          } catch {
+            cachedName = null;
+            cachedComponent = null;
+            set({
+              component: null,
+              props: null,
+              name: '__error',
+              loading: false,
+              hasRemaining: false
+            });
+          }
+        })();
+      } else if (hasCachedComponent) {
+        setUnresolvedStore(unresolvedStore, result.remaining, store.state);
         
         set({
           component: cachedComponent,
@@ -269,90 +350,42 @@ export function createRouteResolver(resolveStore: Readable<ResolvedRouteStore | 
             }
           },
           name,
-          loading: false
+          loading: false,
+          hasRemaining: result.remaining.length > 0
         });
-        return;
-      }
-      
-      set({ component: null, props: null, name: '', loading: true });
-      
-      (async () => {
-        try {
-          const guardResult = guard ? await guard() : null;
-          if (guardResult) {
-            if (typeof guardResult === 'string') {
-              history.replaceState(null, "", guardResult);
-              resolvedRoute.set({
-                path: guardResult,
-                segments: guardResult.split('/').filter(Boolean)
-              });
-            } else if (guardResult && typeof guardResult === 'object' && 'path' in guardResult) {
-              history.replaceState(guardResult.state || null, "", guardResult.path);
-              resolvedRoute.set({
-                path: guardResult.path,
-                segments: guardResult.path.split('/').filter(Boolean),
-                state: guardResult.state
-              });
-            }
-            return;
-          }
-
-          unresolvedStore?.set({
-            path: result.remaining.length > 0 ? '/' + result.remaining.join('/') : '/',
-            segments: result.remaining,
-            state: store.state
-          });
-
-          const module = await component();
-          cachedName = name;
-          cachedComponent = module.default;
-          cachedLoader = component;
+      } else {
+        set({ component: null, props: null, name: '', loading: true, hasRemaining: result.remaining.length > 0 });
+        
+        (async () => {
+          setUnresolvedStore(unresolvedStore, result.remaining, store.state);
           
-          set({
-            component: module.default,
-            props: {
-              route: {
-                params,
-                state: store.state,
-              }
-            },
-            name,
-            loading: false
-          });
-        } catch {
-          cachedName = null;
-          cachedComponent = null;
-          cachedLoader = null;
-          set({
-            component: null,
-            props: null,
-            name: '__error',
-            loading: false
-          });
-        }
-      })();
+          const loaded = await loadComponent(component, params, store.state, name, result.remaining.length > 0, set, cachedName, cachedComponent);
+          cachedName = loaded.name;
+          cachedComponent = loaded.component;
+        })();
+      }
     } else {
       cachedName = null;
       cachedComponent = null;
-      cachedLoader = null;
       set({
         component: null,
         props: null,
         name: '__not_found',
-        loading: false
+        loading: false,
+        hasRemaining: false
       });
     }
-  }, { component: null, props: null, name: '', loading: true } as ResolvedRouteComponent);
+  }, { component: null, props: null, name: '', loading: true, hasRemaining: false } as ResolvedRouteComponent);
 }
 
 export function createErrorHandler(errorStore: Readable<ErroneousRouteStore>, fallback?: RouteDefinition): Readable<ResolvedRouteComponent> {
   return derived(errorStore, (store, set) => {
     if (!store || !fallback) {
-      set({ component: null, props: null, name: '', loading: false } as ResolvedRouteComponent);
+      set({ component: null, props: null, name: '', loading: false, hasRemaining: false } as ResolvedRouteComponent);
       return;
     }
 
-    set({ component: null, props: null, name: '__fallback', loading: true } as ResolvedRouteComponent);
+    set({ component: null, props: null, name: '__fallback', loading: true, hasRemaining: false } as ResolvedRouteComponent);
 
     if (typeof fallback === 'function') {
       fallback().then((module: any) => {
@@ -364,11 +397,12 @@ export function createErrorHandler(errorStore: Readable<ErroneousRouteStore>, fa
             }
           },
           name: '__fallback',
-          loading: false
+          loading: false,
+          hasRemaining: false
         });
       });
     } else if (typeof fallback === 'string') {
-      set({ component: null, props: null, name: '__redirect', loading: false } as ResolvedRouteComponent);
+      set({ component: null, props: null, name: '__redirect', loading: false, hasRemaining: false } as ResolvedRouteComponent);
     } else if ("component" in fallback) {
       fallback.component().then((module: any) => {
         set({
@@ -379,20 +413,17 @@ export function createErrorHandler(errorStore: Readable<ErroneousRouteStore>, fa
             }
           },
           name: '__fallback',
-          loading: false
+          loading: false,
+          hasRemaining: false
         });
       });
     }
-  }, { component: null, props: null, name: '', loading: false } as ResolvedRouteComponent);
+  }, { component: null, props: null, name: '', loading: false, hasRemaining: false } as ResolvedRouteComponent);
 }
 
 export function navigate(path: string, state?: any) {
   const url = new URL(path, window.location.origin);
   Config.currentPath = url.pathname;
-  resolvedRoute.set({
-    path: url.pathname,
-    segments: url.pathname.split('/').filter(Boolean),
-    state
-  });
+  setResolvedRoute(url.pathname, state);
   history.pushState(state || null, "", path);
 }

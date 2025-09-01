@@ -17,7 +17,7 @@ A lightweight and flexible router for Svelte applications with advanced nested r
 ## Installation
 
 ```bash
-pnpm install sly-svelte-router
+pnpm install sly-svelte-location-router
 ```
 
 ## Basic Usage
@@ -26,8 +26,8 @@ pnpm install sly-svelte-router
 
 ```svelte
 <script lang="ts">
-  import { Router } from 'sly-svelte-router';
-  import type { Routes } from 'sly-svelte-router';
+  import { Router } from 'sly-svelte-location-router';
+  import type { Routes } from 'sly-svelte-location-router';
 
   const routes: Routes = {
     '/': () => import('./routes/Home.svelte'),
@@ -48,7 +48,7 @@ For advanced use cases where you need precise control over router initialization
 
 ```svelte
 <script lang="ts">
-  import { initRouter, navigate } from 'sly-svelte-router';
+  import { initRouter, navigate } from 'sly-svelte-location-router';
   import { onMount } from 'svelte';
 
   onMount(() => {
@@ -71,8 +71,8 @@ Create complex nested route structures by using Router components within your ro
 ```svelte
 <!-- routes/Admin.svelte -->
 <script lang="ts">
-  import { Router } from 'sly-svelte-router';
-  import type { Routes } from 'sly-svelte-router';
+  import { Router } from 'sly-svelte-location-router';
+  import type { Routes } from 'sly-svelte-location-router';
   
   const routes: Routes = {
     '/': () => import('./admin/Dashboard.svelte'),
@@ -174,7 +174,7 @@ interface RouteProps {
 ```svelte
 <!-- UserDetail.svelte -->
 <script lang="ts">
-  import type { RouteProps } from 'sly-svelte-router';
+  import type { RouteProps } from 'sly-svelte-location-router';
   
   let { route }: { route: RouteProps } = $props();
   
@@ -197,7 +197,7 @@ Access state passed during navigation or from guards:
 
 ```svelte
 <script lang="ts">
-  import type { RouteProps } from 'sly-svelte-router';
+  import type { RouteProps } from 'sly-svelte-location-router';
   
   let { route }: { route: RouteProps } = $props();
   
@@ -217,7 +217,7 @@ Fallback components receive error information through the same interface:
 ```svelte
 <!-- 404.svelte -->
 <script lang="ts">
-  import type { RouteProps } from 'sly-svelte-router';
+  import type { RouteProps } from 'sly-svelte-location-router';
   
   let { route }: { route: RouteProps } = $props();
   
@@ -231,7 +231,7 @@ Fallback components receive error information through the same interface:
 ## Programmatic Navigation
 
 ```typescript
-import { navigate } from 'sly-svelte-router';
+import { navigate } from 'sly-svelte-location-router';
 
 // Navigate to a new route
 navigate('/users/123');
@@ -302,7 +302,7 @@ Fallbacks handle unmatched routes and can be defined at any router level:
 Full TypeScript support with strict typing:
 
 ```typescript
-import type { Routes, RouteProps, RouteDefinition } from 'sly-svelte-router';
+import type { Routes, RouteProps, RouteDefinition } from 'sly-svelte-location-router';
 
 const routes: Routes = {
   '/users/:id': () => import('./UserDetail.svelte')
@@ -327,6 +327,9 @@ Programmatic navigation function with optional state.
 
 ### `initRouter()`
 Manual router initialization function. Use this instead of the Router component when you need to implement custom route resolution logic. This function sets up URL change listening and navigation event handling, but you'll need to implement your own route matching and component rendering.
+
+### `currentRoute`
+Svelte store containing the current route information. Contains `path`, `params`, and `parentPath` for reactive route tracking.
 
 ### Types
 - `Routes` - Route configuration object type

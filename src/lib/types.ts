@@ -143,4 +143,6 @@ export type ResolvedRouteComponent = {
   name: string;
   /** Whether the component is currently loading */
   loading: boolean;
+  /** Whether there are remaining segments to resolve */
+  hasRemaining: boolean;
 };

@@ -32,7 +32,7 @@
   });
 
   $effect(() => {
-    if ($resolvedComponent.component && !$resolvedComponent.loading) {
+    if ($resolvedComponent.component && !$resolvedComponent.loading && !$resolvedComponent.hasRemaining) {
       currentRoute.set({
         path: $resolveStore?.path || '',
         params: $resolvedComponent.props?.route?.params || {},
@@ -54,6 +54,9 @@
 
   const activeProps = $derived($fallbackComponent.props || $resolvedComponent.props);
   const isCompLoading = $derived($resolvedComponent.loading || $fallbackComponent.loading);
+  const routeName = $derived(() => {
+    return $fallbackComponent.name || $resolvedComponent.name || '';
+  });
 
   let StableComp = $state<any>(null);
   let currentComponentConstructor = $state<any>(null);
@@ -99,7 +102,7 @@
         <StableComp {...activeProps}></StableComp>
     {/if}
 {:else if StableComp}
-    {#key currentComponentConstructor}
+    {#key routeName}
         <StableComp {...activeProps}></StableComp>
     {/key}
 {/if}
