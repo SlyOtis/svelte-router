@@ -58,6 +58,11 @@
   const routeName = $derived(() => {
     return $fallbackComponent.name || $resolvedComponent.name || '';
   });
+  const routeKey = $derived(() => {
+    const name = $fallbackComponent.name || $resolvedComponent.name || '';
+    const search = $resolveStore?.search || '';
+    return search ? `${name}-${search}` : name;
+  });
 
   let StableComp = $state<any>(null);
   let currentComponentConstructor = $state<any>(null);
@@ -103,7 +108,7 @@
         <StableComp {...activeProps}></StableComp>
     {/if}
 {:else if StableComp}
-    {#key routeName}
+    {#key routeKey}
         <StableComp {...activeProps}></StableComp>
     {/key}
 {/if}

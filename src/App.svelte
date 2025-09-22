@@ -42,6 +42,7 @@
     <a href="/shop">Shop</a>
     <a href="/shop/products">Shop Products</a>
     <a href="/shop/cart">Shop Cart</a>
+    <a href="/shop/products?category=featured">Featured Products</a>
     <a href="/legacy">Legacy (redirects to about)</a>
     <a href="/old-contact">Old Contact (redirects to contact)</a>
     <a href="/nonexistent">404 Test</a>

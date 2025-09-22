@@ -20,11 +20,12 @@ function setResolvedRoute(path: string, state?: any, search?: string): void {
   });
 }
 
-function setUnresolvedStore(store: Writable<ResolvedRouteStore | null> | undefined, remaining: string[], state?: any): void {
+function setUnresolvedStore(store: Writable<ResolvedRouteStore | null> | undefined, remaining: string[], state?: any, search?: string): void {
   store?.set({
     path: remaining.length > 0 ? '/' + remaining.join('/') : '/',
     segments: remaining,
-    state
+    state,
+    search
   });
 }
 
@@ -306,7 +307,7 @@ export function createRouteResolver(resolveStore: Readable<ResolvedRouteStore | 
             }
             
             if (hasCachedComponent) {
-              setUnresolvedStore(unresolvedStore, result.remaining, store.state);
+              setUnresolvedStore(unresolvedStore, result.remaining, store.state, store.search);
               
               set({
                 component: cachedComponent,
@@ -324,7 +325,7 @@ export function createRouteResolver(resolveStore: Readable<ResolvedRouteStore | 
             } else {
               set({ component: null, props: null, name: '', loading: true, hasRemaining: result.remaining.length > 0 });
               
-              setUnresolvedStore(unresolvedStore, result.remaining, store.state);
+              setUnresolvedStore(unresolvedStore, result.remaining, store.state, store.search);
               
               const loaded = await loadComponent(component, params, store.state, name, result.remaining.length > 0, set, cachedName, cachedComponent, store.search);
               cachedName = loaded.name;
@@ -343,7 +344,7 @@ export function createRouteResolver(resolveStore: Readable<ResolvedRouteStore | 
           }
         })();
       } else if (hasCachedComponent) {
-        setUnresolvedStore(unresolvedStore, result.remaining, store.state);
+        setUnresolvedStore(unresolvedStore, result.remaining, store.state, store.search);
         
         set({
           component: cachedComponent,
@@ -362,7 +363,7 @@ export function createRouteResolver(resolveStore: Readable<ResolvedRouteStore | 
         set({ component: null, props: null, name: '', loading: true, hasRemaining: result.remaining.length > 0 });
         
         (async () => {
-          setUnresolvedStore(unresolvedStore, result.remaining, store.state);
+          setUnresolvedStore(unresolvedStore, result.remaining, store.state, store.search);
           
           const loaded = await loadComponent(component, params, store.state, name, result.remaining.length > 0, set, cachedName, cachedComponent, store.search);
           cachedName = loaded.name;

@@ -40,6 +40,9 @@
     <a href="/shop/cart">Cart</a>
     <a href="/shop/checkout">Checkout</a>
     <a href="/shop/orders">Orders (redirect)</a>
+    <a href="/shop/products?category=electronics">Electronics</a>
+    <a href="/shop/products?category=clothing&sort=price">Clothing (by price)</a>
+    <a href="/shop/products?sort=name&minPrice=20">Min $20</a>
   </div>
   
   <div class="shop-content">
