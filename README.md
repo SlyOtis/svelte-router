@@ -166,6 +166,7 @@ interface RouteProps {
   params?: RouteParams      // Route parameters from URL
   error?: ErroneousRouteStore  // Error info for fallback components  
   state?: any              // Navigation state data
+  search?: { [key: string]: string }  // Query parameters from URL search string (only for final route)
 }
 ```
 
@@ -209,6 +210,30 @@ Access state passed during navigation or from guards:
   <div class="alert">{message}</div>
 {/if}
 ```
+
+### Query Parameters
+
+Access URL query parameters in the final route component:
+
+```svelte
+<script lang="ts">
+  import type { RouteProps } from 'sly-svelte-location-router';
+  
+  let { route }: { route: RouteProps } = $props();
+  
+  // For /products?category=electronics&sort=price
+  // route.search = { category: 'electronics', sort: 'price' }
+  const category = $derived(route.search?.category);
+  const sortBy = $derived(route.search?.sort);
+</script>
+
+<h1>Products</h1>
+{#if category}
+  <p>Filtered by: {category}</p>
+{/if}
+```
+
+**Note:** Query parameters are only available in the final route component, not in intermediate nested routers.
 
 ### Error Handling in Fallback Components
 

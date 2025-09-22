@@ -47,7 +47,8 @@
       initRouter(parentRoute, routes);
       resolvedRoute.set({
         path: window.location.pathname,
-        segments: window.location.pathname.split('/').filter(Boolean)
+        segments: window.location.pathname.split('/').filter(Boolean),
+        search: window.location.search
       });
     }
   });

@@ -94,6 +94,8 @@ export type ResolvedRouteStore = {
   segments: string[];
   /** Optional state data passed with navigation */
   state?: any;
+  /** Query string from URL */
+  search?: string;
 };
 
 /**
@@ -107,6 +109,8 @@ export interface RouteProps {
   error?: ErroneousRouteStore
   /** State data passed during navigation or from guards */
   state?: any
+  /** Query parameters from URL search string (only for final route) */
+  search?: { [key: string]: string }
 }
 
 /**

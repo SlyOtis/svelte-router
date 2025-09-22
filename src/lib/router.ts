@@ -11,11 +11,12 @@ import type {
 } from "./types";
 import {resolvedRoute} from "./store";
 
-function setResolvedRoute(path: string, state?: any): void {
+function setResolvedRoute(path: string, state?: any, search?: string): void {
   resolvedRoute.set({
     path,
     segments: path.split('/').filter(Boolean),
-    state
+    state,
+    search: search || window.location.search
   });
 }
 
@@ -36,15 +37,17 @@ function createMatchedRoute(params: RouteParams, name: string, component: any, g
   };
 }
 
-async function loadComponent(component: () => Promise<any>, params: RouteParams, state: any, name: string, hasRemaining: boolean, set: any, cachedName: string | null, cachedComponent: any): Promise<{name: string, component: any}> {
+async function loadComponent(component: () => Promise<any>, params: RouteParams, state: any, name: string, hasRemaining: boolean, set: any, cachedName: string | null, cachedComponent: any, search?: string): Promise<{name: string, component: any}> {
   try {
     const module = await component();
+    const searchParams = !hasRemaining && search ? Object.fromEntries(new URLSearchParams(search)) : undefined;
     set({
       component: module.default,
       props: {
         route: {
           params,
           state,
+          search: searchParams
         }
       },
       name,
@@ -248,7 +251,7 @@ export function initRouter(parentRoute: string | undefined, routes: Routes): voi
   Config.isInitialized = true;
   
   window.addEventListener("popstate", (event) => {
-    setResolvedRoute(window.location.pathname, event.state);
+    setResolvedRoute(window.location.pathname, event.state, window.location.search);
   });
 
   document.body.addEventListener("click", (e) => {
@@ -260,7 +263,7 @@ export function initRouter(parentRoute: string | undefined, routes: Routes): voi
     ) {
       e.preventDefault();
       const url = new URL(anchor.href);
-      setResolvedRoute(url.pathname);
+      setResolvedRoute(url.pathname, null, url.search);
       history.pushState(null, "", anchor.href);
     }
   });
@@ -311,6 +314,7 @@ export function createRouteResolver(resolveStore: Readable<ResolvedRouteStore | 
                   route: {
                     params,
                     state: store.state,
+                    search: !result.remaining.length && store.search ? Object.fromEntries(new URLSearchParams(store.search)) : undefined
                   }
                 },
                 name,
@@ -322,7 +326,7 @@ export function createRouteResolver(resolveStore: Readable<ResolvedRouteStore | 
               
               setUnresolvedStore(unresolvedStore, result.remaining, store.state);
               
-              const loaded = await loadComponent(component, params, store.state, name, result.remaining.length > 0, set, cachedName, cachedComponent);
+              const loaded = await loadComponent(component, params, store.state, name, result.remaining.length > 0, set, cachedName, cachedComponent, store.search);
               cachedName = loaded.name;
               cachedComponent = loaded.component;
             }
@@ -347,6 +351,7 @@ export function createRouteResolver(resolveStore: Readable<ResolvedRouteStore | 
             route: {
               params,
               state: store.state,
+              search: !result.remaining.length && store.search ? Object.fromEntries(new URLSearchParams(store.search)) : undefined
             }
           },
           name,
@@ -359,7 +364,7 @@ export function createRouteResolver(resolveStore: Readable<ResolvedRouteStore | 
         (async () => {
           setUnresolvedStore(unresolvedStore, result.remaining, store.state);
           
-          const loaded = await loadComponent(component, params, store.state, name, result.remaining.length > 0, set, cachedName, cachedComponent);
+          const loaded = await loadComponent(component, params, store.state, name, result.remaining.length > 0, set, cachedName, cachedComponent, store.search);
           cachedName = loaded.name;
           cachedComponent = loaded.component;
         })();
@@ -424,6 +429,6 @@ export function createErrorHandler(errorStore: Readable<ErroneousRouteStore>, fa
 export function navigate(path: string, state?: any) {
   const url = new URL(path, window.location.origin);
   Config.currentPath = url.pathname;
-  setResolvedRoute(url.pathname, state);
+  setResolvedRoute(url.pathname, state, url.search);
   history.pushState(state || null, "", path);
 }

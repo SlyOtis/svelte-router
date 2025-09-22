@@ -3,7 +3,8 @@ import type {ResolvedRouteStore, ErroneousRouteStore, CurrentRouteStore} from ".
 
 export const resolvedRoute = writable<ResolvedRouteStore>({
     path: window.location.pathname,
-    segments: window.location.pathname.split('/').filter(Boolean)
+    segments: window.location.pathname.split('/').filter(Boolean),
+    search: window.location.search
 });
 
 export const erroneousRoute = writable<ErroneousRouteStore>(null);
