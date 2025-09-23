@@ -41,7 +41,7 @@ function createMatchedRoute(params: RouteParams, name: string, component: any, g
 async function loadComponent(component: () => Promise<any>, params: RouteParams, state: any, name: string, hasRemaining: boolean, set: any, cachedName: string | null, cachedComponent: any, search?: string): Promise<{name: string, component: any}> {
   try {
     const module = await component();
-    const searchParams = !hasRemaining && search ? Object.fromEntries(new URLSearchParams(search)) : undefined;
+    const searchParams = !hasRemaining ? Object.fromEntries(new URLSearchParams(search || '')) : undefined;
     set({
       component: module.default,
       props: {
@@ -315,7 +315,7 @@ export function createRouteResolver(resolveStore: Readable<ResolvedRouteStore | 
                   route: {
                     params,
                     state: store.state,
-                    search: !result.remaining.length && store.search ? Object.fromEntries(new URLSearchParams(store.search)) : undefined
+                    search: !result.remaining.length ? Object.fromEntries(new URLSearchParams(store.search || '')) : undefined
                   }
                 },
                 name,
@@ -352,7 +352,7 @@ export function createRouteResolver(resolveStore: Readable<ResolvedRouteStore | 
             route: {
               params,
               state: store.state,
-              search: !result.remaining.length && store.search ? Object.fromEntries(new URLSearchParams(store.search)) : undefined
+              search: !result.remaining.length ? Object.fromEntries(new URLSearchParams(store.search || '')) : undefined
             }
           },
           name,
