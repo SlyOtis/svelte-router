@@ -55,14 +55,11 @@
 
   const activeProps = $derived($fallbackComponent.props || $resolvedComponent.props);
   const isCompLoading = $derived($resolvedComponent.loading || $fallbackComponent.loading);
-  const routeName = $derived(() => {
-    return $fallbackComponent.name || $resolvedComponent.name || '';
-  });
-  const routeKey = $derived(() => {
-    const name = $fallbackComponent.name || $resolvedComponent.name || '';
-    const search = $resolveStore?.search || '';
-    return search ? `${name}-${search}` : name;
-  });
+  const routeName = $derived($fallbackComponent.name || $resolvedComponent.name || '');
+  const routeKey = $derived(
+    ($fallbackComponent.name || $resolvedComponent.name || '') + 
+    ($resolveStore?.search || '')
+  );
 
   let StableComp = $state<any>(null);
   let currentComponentConstructor = $state<any>(null);

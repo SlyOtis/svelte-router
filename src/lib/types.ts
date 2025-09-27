@@ -21,12 +21,19 @@ export type RouteComponent = () => Promise<any>;
 export type RouteGuard = () => Promise<string | null | undefined | { path: string, state?: any }>;
 
 /**
+ * Represents additional props for a route
+ * Can be either a static object or a function that returns an object
+ */
+export type RouteProps = any | (() => any);
+
+/**
  * Represents a named route with its associated component
  * @property name - The name of the route
  * @property component - The lazy-loaded component for this route
  * @property guard - Optional guard function for route protection
+ * @property props - Optional additional props for the component
  */
-export type RouteData = { name: string; component: RouteComponent, guard?: RouteGuard };
+export type RouteData = { name: string; component: RouteComponent, guard?: RouteGuard, props?: RouteProps };
 
 /**
  * Extended RouteData for internal router implementation
@@ -68,6 +75,8 @@ export type MatchedRoute = {
   component: () => Promise<any>;
   /** Optional guard function for route protection */
   guard?: RouteGuard;
+  /** Optional additional props for the component */
+  props?: RouteProps;
 };
 
 /**
@@ -102,7 +111,7 @@ export type ResolvedRouteStore = {
  * Props passed to route components
  * All route components receive these props in a 'router' prop
  */
-export interface RouteProps {
+export interface RouteComponentProps {
   /** Route parameters extracted from the URL pattern */
   params?: RouteParams
   /** Error information if the route is rendered as a fallback */
@@ -142,7 +151,7 @@ export type ResolvedRouteComponent = {
   /** The loaded component (null if not loaded or error) */
   component: any | null;
   /** Props to pass to the component, wrapped in a 'router' property */
-  props: { route: RouteProps } | null;
+  props: { route: RouteComponentProps } | null;
   /** The route name or special identifier (__error, __not_found, etc.) */
   name: string;
   /** Whether the component is currently loading */

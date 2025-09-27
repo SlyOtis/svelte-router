@@ -29,28 +29,32 @@ function setUnresolvedStore(store: Writable<ResolvedRouteStore | null> | undefin
   });
 }
 
-function createMatchedRoute(params: RouteParams, name: string, component: any, guard?: any): MatchedRoute {
+function createMatchedRoute(params: RouteParams, name: string, component: any, guard?: any, props?: any): MatchedRoute {
   return {
     params,
     name,
     component,
-    guard
+    guard,
+    props
   };
 }
 
-async function loadComponent(component: () => Promise<any>, params: RouteParams, state: any, name: string, hasRemaining: boolean, set: any, cachedName: string | null, cachedComponent: any, search?: string): Promise<{name: string, component: any}> {
+async function loadComponent(component: () => Promise<any>, params: RouteParams, state: any, name: string, hasRemaining: boolean, set: any, cachedName: string | null, cachedComponent: any, search?: string, customProps?: () => any): Promise<{name: string, component: any}> {
   try {
     const module = await component();
     const searchParams = !hasRemaining ? Object.fromEntries(new URLSearchParams(search || '')) : undefined;
+    const additionalProps = customProps ? (typeof customProps === 'function' ? customProps() : customProps) : null;
+    const props = {
+      route: {
+        params,
+        state,
+        search: searchParams
+      }
+    };
+    const finalProps = additionalProps ? { ...additionalProps, ...props } : props;
     set({
       component: module.default,
-      props: {
-        route: {
-          params,
-          state,
-          search: searchParams
-        }
-      },
+      props: finalProps,
       name,
       loading: false,
       hasRemaining
@@ -165,7 +169,7 @@ export function resolveRoute(segments: string[], routes: Routes): {
         };
       } else if ("name" in routeData && "component" in routeData) {
         return {
-          matched: createMatchedRoute({}, routeData.name, routeData.component, routeData.guard),
+          matched: createMatchedRoute({}, routeData.name, routeData.component, routeData.guard, routeData.props),
           remaining: []
         };
       }
@@ -224,7 +228,7 @@ export function resolveRoute(segments: string[], routes: Routes): {
           };
         } else if ("name" in routeData && "component" in routeData) {
           return {
-            matched: createMatchedRoute(result.params as RouteParams, routeData.name, routeData.component, routeData.guard),
+            matched: createMatchedRoute(result.params as RouteParams, routeData.name, routeData.component, routeData.guard, routeData.props),
             remaining
           };
         }
@@ -283,7 +287,7 @@ export function createRouteResolver(resolveStore: Readable<ResolvedRouteStore | 
     const result = resolveRoute(store.segments, routes);
     
     if (result.matched) {
-      const {component, params, name, guard} = result.matched;
+      const {component, params, name, guard, props: customProps} = result.matched;
       
       const hasCachedComponent = cachedName === name && cachedComponent;
       
@@ -309,15 +313,19 @@ export function createRouteResolver(resolveStore: Readable<ResolvedRouteStore | 
             if (hasCachedComponent) {
               setUnresolvedStore(unresolvedStore, result.remaining, store.state, store.search);
               
+              const additionalProps = customProps ? (typeof customProps === 'function' ? customProps() : customProps) : null;
+              const props = {
+                route: {
+                  params,
+                  state: store.state,
+                  search: !result.remaining.length ? Object.fromEntries(new URLSearchParams(store.search || '')) : undefined
+                }
+              };
+              const finalProps = additionalProps ? { ...additionalProps, ...props } : props;
+              
               set({
                 component: cachedComponent,
-                props: {
-                  route: {
-                    params,
-                    state: store.state,
-                    search: !result.remaining.length ? Object.fromEntries(new URLSearchParams(store.search || '')) : undefined
-                  }
-                },
+                props: finalProps,
                 name,
                 loading: false,
                 hasRemaining: result.remaining.length > 0
@@ -327,7 +335,7 @@ export function createRouteResolver(resolveStore: Readable<ResolvedRouteStore | 
               
               setUnresolvedStore(unresolvedStore, result.remaining, store.state, store.search);
               
-              const loaded = await loadComponent(component, params, store.state, name, result.remaining.length > 0, set, cachedName, cachedComponent, store.search);
+              const loaded = await loadComponent(component, params, store.state, name, result.remaining.length > 0, set, cachedName, cachedComponent, store.search, customProps);
               cachedName = loaded.name;
               cachedComponent = loaded.component;
             }
@@ -346,15 +354,19 @@ export function createRouteResolver(resolveStore: Readable<ResolvedRouteStore | 
       } else if (hasCachedComponent) {
         setUnresolvedStore(unresolvedStore, result.remaining, store.state, store.search);
         
+        const additionalProps = customProps ? (typeof customProps === 'function' ? customProps() : customProps) : null;
+        const props = {
+          route: {
+            params,
+            state: store.state,
+            search: !result.remaining.length ? Object.fromEntries(new URLSearchParams(store.search || '')) : undefined
+          }
+        };
+        const finalProps = additionalProps ? { ...additionalProps, ...props } : props;
+        
         set({
           component: cachedComponent,
-          props: {
-            route: {
-              params,
-              state: store.state,
-              search: !result.remaining.length ? Object.fromEntries(new URLSearchParams(store.search || '')) : undefined
-            }
-          },
+          props: finalProps,
           name,
           loading: false,
           hasRemaining: result.remaining.length > 0
@@ -365,7 +377,7 @@ export function createRouteResolver(resolveStore: Readable<ResolvedRouteStore | 
         (async () => {
           setUnresolvedStore(unresolvedStore, result.remaining, store.state, store.search);
           
-          const loaded = await loadComponent(component, params, store.state, name, result.remaining.length > 0, set, cachedName, cachedComponent, store.search);
+          const loaded = await loadComponent(component, params, store.state, name, result.remaining.length > 0, set, cachedName, cachedComponent, store.search, customProps);
           cachedName = loaded.name;
           cachedComponent = loaded.component;
         })();
