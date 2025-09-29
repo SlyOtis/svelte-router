@@ -1,6 +1,6 @@
 <script lang="ts">
-  let { props } = $props();
-  let params = props?.params || {};
+  let { route } = $props();
+  let params = route?.params || {};
 </script>
 
 <div class="shop-page">

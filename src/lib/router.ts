@@ -44,14 +44,20 @@ async function loadComponent(component: () => Promise<any>, params: RouteParams,
     const module = await component();
     const searchParams = !hasRemaining ? Object.fromEntries(new URLSearchParams(search || '')) : undefined;
     const additionalProps = customProps ? (typeof customProps === 'function' ? customProps() : customProps) : null;
-    const props = {
+    const finalProps = additionalProps ? { 
+      ...additionalProps,
+      route: {
+        params,
+        state,
+        search: searchParams
+      }
+    } : {
       route: {
         params,
         state,
         search: searchParams
       }
     };
-    const finalProps = additionalProps ? { ...additionalProps, ...props } : props;
     set({
       component: module.default,
       props: finalProps,
@@ -81,6 +87,21 @@ export class Config {
 function isValidRoutePattern(pattern: string): boolean {
   if (!pattern) return false;
   if (pattern === '/') return true;
+  
+  const hasHostname = !pattern.startsWith('/');
+  if (hasHostname) {
+    const [hostname, ...pathParts] = pattern.split('/');
+    const path = '/' + pathParts.join('/');
+    if (!hostname) return false;
+    try {
+      if (path && path !== '/') {
+        match(path, {decode: decodeURIComponent});
+      }
+      return true;
+    } catch {
+      return false;
+    }
+  }
 
   try {
     match(pattern, {decode: decodeURIComponent});
@@ -156,6 +177,38 @@ export function resolveRoute(segments: string[], routes: Routes): {
   matched: MatchedRoute | null;
   remaining: string[];
 } {
+  const currentHostname = typeof window !== 'undefined' ? window.location.hostname : '';
+  const pathOnly = '/' + segments.join('/');
+  
+  for (const [pattern, routeDef] of Object.entries(routes)) {
+    if (!pattern.startsWith('/')) {
+      const [hostnamePattern, ...pathParts] = pattern.split('/');
+      const pathPattern = '/' + pathParts.join('/');
+      
+      const hostnameMatches = hostnamePattern === '*' ||
+        hostnamePattern === currentHostname ||
+        (hostnamePattern.startsWith('*.') && 
+         currentHostname.endsWith(hostnamePattern.slice(1)));
+      
+      if (hostnameMatches && pathPattern === pathOnly) {
+        if (typeof routeDef === 'string') {
+          const redirectSegments = routeDef.split('/').filter(Boolean);
+          return resolveRoute(redirectSegments, routes);
+        } else if (typeof routeDef === 'function') {
+          return {
+            matched: createMatchedRoute({}, pattern, routeDef, undefined, undefined),
+            remaining: []
+          };
+        } else if ("name" in routeDef && "component" in routeDef) {
+          return {
+            matched: createMatchedRoute({}, routeDef.name, routeDef.component, routeDef.guard, routeDef.props),
+            remaining: []
+          };
+        }
+      }
+    }
+  }
+  
   if (segments.length === 0) {
     if (routes['/']) {
       const routeData = routes['/'];
@@ -164,7 +217,7 @@ export function resolveRoute(segments: string[], routes: Routes): {
         return resolveRoute(redirectSegments, routes);
       } else if (typeof routeData === 'function') {
         return {
-          matched: createMatchedRoute({}, '/', routeData),
+          matched: createMatchedRoute({}, '/', routeData, undefined, undefined),
           remaining: []
         };
       } else if ("name" in routeData && "component" in routeData) {
@@ -223,7 +276,7 @@ export function resolveRoute(segments: string[], routes: Routes): {
           return resolveRoute([...redirectSegments, ...remaining], routes);
         } else if (typeof routeData === 'function') {
           return {
-            matched: createMatchedRoute(result.params as RouteParams, routePath, routeData),
+            matched: createMatchedRoute(result.params as RouteParams, routePath, routeData, undefined, undefined),
             remaining
           };
         } else if ("name" in routeData && "component" in routeData) {
@@ -261,15 +314,31 @@ export function initRouter(parentRoute: string | undefined, routes: Routes): voi
 
   document.body.addEventListener("click", (e) => {
     const anchor = (e.target as HTMLElement).closest('a');
-    if (
-      anchor &&
-      anchor.href &&
-      anchor.href.startsWith(window.location.origin)
-    ) {
-      e.preventDefault();
+    if (anchor && anchor.href) {
       const url = new URL(anchor.href);
-      setResolvedRoute(url.pathname, null, url.search);
-      history.pushState(null, "", anchor.href);
+      
+      if (url.hostname === window.location.hostname) {
+        e.preventDefault();
+        setResolvedRoute(url.pathname, null, url.search);
+        history.pushState(null, "", anchor.href);
+      } else {
+        const currentHostname = window.location.hostname;
+        const targetHostname = url.hostname;
+        const fullPattern = targetHostname + url.pathname;
+        
+        for (const pattern of Object.keys(Config.routes)) {
+          if (!pattern.startsWith('/')) {
+            const [hostnamePattern] = pattern.split('/');
+            if (hostnamePattern === targetHostname ||
+                (hostnamePattern.startsWith('*.') && 
+                 targetHostname.endsWith(hostnamePattern.slice(1)))) {
+              window.location.href = anchor.href;
+              e.preventDefault();
+              return;
+            }
+          }
+        }
+      }
     }
   });
 }
@@ -314,14 +383,20 @@ export function createRouteResolver(resolveStore: Readable<ResolvedRouteStore | 
               setUnresolvedStore(unresolvedStore, result.remaining, store.state, store.search);
               
               const additionalProps = customProps ? (typeof customProps === 'function' ? customProps() : customProps) : null;
-              const props = {
+              const finalProps = additionalProps ? { 
+                ...additionalProps,
+                route: {
+                  params,
+                  state: store.state,
+                  search: !result.remaining.length ? Object.fromEntries(new URLSearchParams(store.search || '')) : undefined
+                }
+              } : {
                 route: {
                   params,
                   state: store.state,
                   search: !result.remaining.length ? Object.fromEntries(new URLSearchParams(store.search || '')) : undefined
                 }
               };
-              const finalProps = additionalProps ? { ...additionalProps, ...props } : props;
               
               set({
                 component: cachedComponent,
