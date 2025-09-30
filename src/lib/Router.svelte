@@ -24,19 +24,26 @@
   const resolvedComponent = createRouteResolver(resolveStore, routes, unresolvedRoute);
   const fallbackComponent = createErrorHandler(errorStore, fallback);
 
+  const myMatchedPath = $derived.by(() => {
+    if (!$resolveStore || !$unresolvedRoute) return parentRoute || '';
+    const fullPath = $resolvedRoute.path;
+    const remainingPath = $unresolvedRoute.path;
+    return fullPath.slice(0, fullPath.length - remainingPath.length) || '/';
+  });
+
   setContext('sly-router', {
     resolveStore: unresolvedRoute,
     errorStore: routeError,
     isRoot: false,
-    parentRoute
+    parentRoute: myMatchedPath
   });
 
   $effect(() => {
     if ($resolvedComponent.component && !$resolvedComponent.loading && !$resolvedComponent.hasRemaining) {
       currentRoute.set({
-        path: $resolveStore?.path || '',
+        path: $resolvedRoute.path,
         params: $resolvedComponent.props?.route?.params || {},
-        parentPath: parentRoute || $resolveStore?.path || ''
+        parentPath: parentRoute || ''
       });
     }
   });

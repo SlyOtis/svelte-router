@@ -2,20 +2,29 @@
   import Router from "../lib/Router.svelte";
   import type { Routes } from "../lib";
   import { onMount, onDestroy } from 'svelte';
-  
+  import { currentRoute } from "../lib/store";
+
   const instanceId = Math.random().toString(36).substr(2, 9);
-  
+
   onMount(() => {
     console.log(`[Shop Layout ${instanceId}] Component MOUNTED`);
     return () => {
       console.log(`[Shop Layout ${instanceId}] Cleanup from onMount`);
     };
   });
-  
+
   onDestroy(() => {
     console.log(`[Shop Layout ${instanceId}] Component DESTROYED`);
   });
-  
+
+  $effect(() => {
+    console.log(`🟡 [Shop ${instanceId}] currentRoute in nested router:`, {
+      path: $currentRoute.path,
+      params: $currentRoute.params,
+      parentPath: $currentRoute.parentPath
+    });
+  });
+
   const routes: Routes = {
     '/': () => import('./shop/Home.svelte'),
     '/products': () => import('./shop/Products.svelte'),

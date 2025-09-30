@@ -87,21 +87,6 @@ export class Config {
 function isValidRoutePattern(pattern: string): boolean {
   if (!pattern) return false;
   if (pattern === '/') return true;
-  
-  const hasHostname = !pattern.startsWith('/');
-  if (hasHostname) {
-    const [hostname, ...pathParts] = pattern.split('/');
-    const path = '/' + pathParts.join('/');
-    if (!hostname) return false;
-    try {
-      if (path && path !== '/') {
-        match(path, {decode: decodeURIComponent});
-      }
-      return true;
-    } catch {
-      return false;
-    }
-  }
 
   try {
     match(pattern, {decode: decodeURIComponent});
@@ -177,38 +162,6 @@ export function resolveRoute(segments: string[], routes: Routes): {
   matched: MatchedRoute | null;
   remaining: string[];
 } {
-  const currentHostname = typeof window !== 'undefined' ? window.location.hostname : '';
-  const pathOnly = '/' + segments.join('/');
-  
-  for (const [pattern, routeDef] of Object.entries(routes)) {
-    if (!pattern.startsWith('/')) {
-      const [hostnamePattern, ...pathParts] = pattern.split('/');
-      const pathPattern = '/' + pathParts.join('/');
-      
-      const hostnameMatches = hostnamePattern === '*' ||
-        hostnamePattern === currentHostname ||
-        (hostnamePattern.startsWith('*.') && 
-         currentHostname.endsWith(hostnamePattern.slice(1)));
-      
-      if (hostnameMatches && pathPattern === pathOnly) {
-        if (typeof routeDef === 'string') {
-          const redirectSegments = routeDef.split('/').filter(Boolean);
-          return resolveRoute(redirectSegments, routes);
-        } else if (typeof routeDef === 'function') {
-          return {
-            matched: createMatchedRoute({}, pattern, routeDef, undefined, undefined),
-            remaining: []
-          };
-        } else if ("name" in routeDef && "component" in routeDef) {
-          return {
-            matched: createMatchedRoute({}, routeDef.name, routeDef.component, routeDef.guard, routeDef.props),
-            remaining: []
-          };
-        }
-      }
-    }
-  }
-  
   if (segments.length === 0) {
     if (routes['/']) {
       const routeData = routes['/'];
@@ -314,31 +267,15 @@ export function initRouter(parentRoute: string | undefined, routes: Routes): voi
 
   document.body.addEventListener("click", (e) => {
     const anchor = (e.target as HTMLElement).closest('a');
-    if (anchor && anchor.href) {
+    if (
+      anchor &&
+      anchor.href &&
+      anchor.href.startsWith(window.location.origin)
+    ) {
+      e.preventDefault();
       const url = new URL(anchor.href);
-      
-      if (url.hostname === window.location.hostname) {
-        e.preventDefault();
-        setResolvedRoute(url.pathname, null, url.search);
-        history.pushState(null, "", anchor.href);
-      } else {
-        const currentHostname = window.location.hostname;
-        const targetHostname = url.hostname;
-        const fullPattern = targetHostname + url.pathname;
-        
-        for (const pattern of Object.keys(Config.routes)) {
-          if (!pattern.startsWith('/')) {
-            const [hostnamePattern] = pattern.split('/');
-            if (hostnamePattern === targetHostname ||
-                (hostnamePattern.startsWith('*.') && 
-                 targetHostname.endsWith(hostnamePattern.slice(1)))) {
-              window.location.href = anchor.href;
-              e.preventDefault();
-              return;
-            }
-          }
-        }
-      }
+      setResolvedRoute(url.pathname, null, url.search);
+      history.pushState(null, "", anchor.href);
     }
   });
 }

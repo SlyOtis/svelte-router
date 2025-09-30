@@ -1,7 +1,23 @@
 <script lang="ts">
   import Router from './lib/Router.svelte';
   import type { Routes } from './lib';
-  import { resolvedRoute } from './lib/store';
+  import { resolvedRoute, currentRoute } from './lib/store';
+
+  $effect(() => {
+    console.log('🔵 currentRoute changed:', {
+      path: $currentRoute.path,
+      params: $currentRoute.params,
+      parentPath: $currentRoute.parentPath
+    });
+  });
+
+  $effect(() => {
+    console.log('🟢 resolvedRoute changed:', {
+      path: $resolvedRoute.path,
+      segments: $resolvedRoute.segments,
+      search: $resolvedRoute.search
+    });
+  });
 
   const routes: Routes = {
     '/': () => import('./routes/Home.svelte'),
