@@ -263,20 +263,35 @@ export function initRouter(parentRoute: string | undefined, routes: Routes): voi
   
   window.addEventListener("popstate", (event) => {
     setResolvedRoute(window.location.pathname, event.state, window.location.search);
+    if (event.state && typeof event.state.scrollX === 'number' && typeof event.state.scrollY === 'number') {
+      requestAnimationFrame(() => window.scrollTo(event.state.scrollX, event.state.scrollY));
+    }
   });
 
   document.body.addEventListener("click", (e) => {
+    if (e.defaultPrevented || e.button !== 0 || e.metaKey || e.ctrlKey || e.shiftKey || e.altKey) return;
+
     const anchor = (e.target as HTMLElement).closest('a');
+    if (!anchor || !anchor.href || !anchor.href.startsWith(window.location.origin)) return;
+
     if (
-      anchor &&
-      anchor.href &&
-      anchor.href.startsWith(window.location.origin)
-    ) {
-      e.preventDefault();
-      const url = new URL(anchor.href);
-      setResolvedRoute(url.pathname, null, url.search);
-      history.pushState(null, "", anchor.href);
-    }
+      anchor.hasAttribute('download') ||
+      anchor.hasAttribute('target') ||
+      anchor.getAttribute('rel')?.includes('external') ||
+      anchor.hasAttribute('data-no-routing')
+    ) return;
+
+    e.preventDefault();
+
+    history.replaceState(
+      { ...history.state, scrollX: window.scrollX, scrollY: window.scrollY },
+      ""
+    );
+
+    const url = new URL(anchor.href);
+    setResolvedRoute(url.pathname, null, url.search);
+    history.pushState(null, "", anchor.href);
+    window.scrollTo(0, 0);
   });
 }
 
@@ -452,8 +467,14 @@ export function createErrorHandler(errorStore: Readable<ErroneousRouteStore>, fa
 }
 
 export function navigate(path: string, state?: any) {
+  history.replaceState(
+    { ...history.state, scrollX: window.scrollX, scrollY: window.scrollY },
+    ""
+  );
+
   const url = new URL(path, window.location.origin);
   Config.currentPath = url.pathname;
   setResolvedRoute(url.pathname, state, url.search);
   history.pushState(state || null, "", path);
+  window.scrollTo(0, 0);
 }
