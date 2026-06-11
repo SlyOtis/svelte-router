@@ -281,6 +281,18 @@ export function initRouter(parentRoute: string | undefined, routes: Routes): voi
       anchor.hasAttribute('data-no-routing')
     ) return;
 
+    const url = new URL(anchor.href);
+
+    if (url.pathname === window.location.pathname && url.search === window.location.search) {
+      if (!url.hash) return;
+      e.preventDefault();
+      history.pushState(null, "", anchor.href);
+      const id = decodeURIComponent(url.hash.slice(1));
+      const target = id ? document.getElementById(id) : null;
+      if (target) target.scrollIntoView({ behavior: 'auto', block: 'start' });
+      return;
+    }
+
     e.preventDefault();
 
     history.replaceState(
@@ -288,10 +300,9 @@ export function initRouter(parentRoute: string | undefined, routes: Routes): voi
       ""
     );
 
-    const url = new URL(anchor.href);
     setResolvedRoute(url.pathname, null, url.search);
     history.pushState(null, "", anchor.href);
-    window.scrollTo(0, 0);
+    requestAnimationFrame(() => window.scrollTo(0, 0));
   });
 }
 
@@ -473,8 +484,17 @@ export function navigate(path: string, state?: any) {
   );
 
   const url = new URL(path, window.location.origin);
+  if (url.pathname === window.location.pathname && url.search === window.location.search) {
+    history.pushState(state || null, "", path);
+    if (url.hash) {
+      const id = decodeURIComponent(url.hash.slice(1));
+      const target = id ? document.getElementById(id) : null;
+      if (target) target.scrollIntoView({ behavior: 'auto', block: 'start' });
+    }
+    return;
+  }
   Config.currentPath = url.pathname;
   setResolvedRoute(url.pathname, state, url.search);
   history.pushState(state || null, "", path);
-  window.scrollTo(0, 0);
+  requestAnimationFrame(() => window.scrollTo(0, 0));
 }
